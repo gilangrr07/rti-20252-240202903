@@ -61,39 +61,56 @@ Membandingkan deep learning 2024 dengan decision tree sederhana tanpa justifikas
 ```
 LITERATURE MAPPING
 
-Topik      : ____________________
-Database   : ____________________
-Query      : ____________________
-Tahun      : ____________________
-Hasil awal : ____ paper → Screening → ____ paper final
+Topik      : Klasifikasi Machine Learning untuk Soal Ujian Bahasa Indonesia SD
+Database   : Google Scholar, Jurnal SISFOKOM, JIP Polinema, JCOSIS, Jurnal Algoritme, CONTEN, Jurnal Algoritma ITG
+Query      : "klasifikasi machine learning soal ujian bahasa indonesia" OR "naive bayes random forest text classification Indonesian" OR "WEKA StringToWordVector klasifikasi teks"
+Tahun      : 2022–2026
+Hasil awal : 20 paper → Screening → 6 paper final
 
 Literature Matrix (concept-centric):
 
 | Study | Tahun | Method | Data | Result | Limitation |
 |-------|-------|--------|------|--------|------------|
-|       |       |        |      |        |            |
+|   Baharuddin & Tjahyanto    |    2022   |    Naïve Bayes, Random Forest, REPTree + StringToWordVector (WEKA)    |   183–418 soal ujian B. Indonesia SD (format CSV → ARFF)   |   REPTree terbaik: 91,15% (418 soal); peningkatan 15% dari awal     |      Hanya 1 mata pelajaran, pelabelan oleh 1 guru, dataset kecil, tidak menggunakan DL      |
+|   Putra, Negara & Sastypratiwi (JIP Polinema, 2026)    |    2026   |    Naïve Bayes (Gaussian) & Random Forest + SMOTE / Undersampling (Python)    |  Bank Marketing UCI — 41.188 baris, imbalanced (tabular, non-teks)  |   RF + SMOTE: 93,08% (terbaik); NB Default: 91,78%     |      Dataset tabular bukan teks; domain non-pendidikan; tidak ada uji       |
+|   Utami (JCOSIS, 2025)    |    2025   |    Naïve Bayes, SVM, Random Forest + TF-IDF + K-Fold CV (Python)    |   5.000 berita hoaks/valid Bahasa Indonesia (Kaggle + TurnBackHoax)   |   RF: 93,2%; SVM: 91%; NB: 88,5%     |      Domain berita bukan soal ujian; hanya 2 kelas; tidak di domain pendidikan      |
+|  Meinita & Anshori (Jurnal Algoritme, 2025)    |    2025   |    Naïve Bayes (Multinomial) & Random Forest + TF-IDF + 5-Fold CV (Python/Google Colab)    |   26.873 percakapan chatbot customer service B. Indonesia (Kaggle)   |   RF: 96%; NB: 95%; perbedaan signifikan statistik (p = 4,78×10⁻⁷)     |      Domain layanan pelanggan bukan soal ujian; tidak ada eksperimen variasi ukuran dataset      |
+|  Wati, Suleman & Widodo (CONTEN, 2025)    |    2025   |    Random Forest & Naïve Bayes + TF-IDF + Cross Validation (RapidMiner)    |   200 ulasan aplikasi Deepseek Google Play Store (label manual)   |   RF: 96,38%; NB: 72,96%     |     Dataset sangat kecil (200 data); domain ulasan aplikasi; gap NB sangat besar      |
+|  Nugroho, Hayati & Jabir (Jurnal Algoritma ITG, 2025)    |    2025   |    Naïve Bayes & Random Forest + TF-IDF + SMOTE + berbagai rasio split (Python)    |   34.078 ulasan aplikasi IKD Google Play Store (lexicon InSet, B. Indonesia)   |   RF: 93% (terbaik); NB: 89–90% (dengan SMOTE)     |     Label otomatis berbasis lexicon; hanya 2 kelas sentimen; sumber data tunggal (Play Store)      |
+
 
 Pola yang ditemukan:
-  Metode dominan     : ____________________
-  Dataset umum       : ____________________
-  Limitasi berulang  : ____________________
+  Metode dominan     : Random Forest secara konsisten mengungguli Naive Bayes di semua studi komparasi teks B. Indonesia (akurasi RF: 91–96% vs NB: 65–95%); REPTree hanya diuji pada dataset soal ujian spesifik.
+  Dataset umum       : Dataset teks Bahasa Indonesia didominasi domain non-pendidikan seperti berita, chatbot, dan ulasan aplikasi. Dataset soal ujian pendidikan masih sangat terbatas
+  Limitasi berulang  : Dataset kecil, domain sempit, pelabelan manual/subjektif, belum ada eksperimen variasi ukuran data, dan belum menggunakan pendekatan deep learning.
 
 GAP IDENTIFICATION
 
-Gap 1: [Jenis: performance / method / data / context]
-  Deskripsi    : ____________________
-  Bukti        : ____________________
-  Signifikansi : ____________________
+Gap 1: [Performance Gap]
+  Deskripsi    : Performa Naïve Bayes masih jauh di bawah Random Forest dan REPTree pada klasifikasi teks soal Bahasa Indonesia SD.
+  Bukti        : Pada penelitian Baharuddin & Tjahyanto (2022), NB hanya memperoleh akurasi 64,83% sedangkan REPTree mencapai 91,15%.
+  Signifikansi : Menunjukkan masih ada peluang peningkatan performa klasifikasi teks pendidikan Indonesia menggunakan metode dan preprocessing yang lebih modern.
 
-Gap 2: [Jenis: ____]
-  Deskripsi    : ____________________
-  Bukti        : ____________________
-  Signifikansi : ____________________
+Gap 2: [Method Gap]
+  Deskripsi    : Belum ada penelitian yang menerapkan TF-IDF, K-Fold Cross Validation, maupun SMOTE pada dataset soal ujian Bahasa Indonesia SD.
+  Bukti        : Studi yang ada hanya menggunakan StringToWordVector berbasis WEKA tanpa eksplorasi pipeline Python modern.
+  Signifikansi : Metode tersebut telah terbukti efektif pada domain teks lain dan berpotensi meningkatkan akurasi klasifikasi soal ujian.
+
+Gap 3: [Data Gap]
+  Deskripsi    : Dataset soal ujian Bahasa Indonesia SD masih sangat kecil dan belum representatif..
+  Bukti        : Seluruh studi pada domain ini hanya menggunakan 183–418 soal.
+  Signifikansi : Dataset kecil menyebabkan model kurang generalizable dan sulit mengevaluasi performa pada kondisi nyata.
+
+Gap 4: [Context Gap]
+  Deskripsi    : Penelitian terbaru NB vs RF lebih banyak dilakukan pada domain non-pendidikan.
+  Bukti        :Studi tahun 2025–2026 fokus pada berita, chatbot, marketing, dan ulasan aplikasi.
+  Signifikansi : Belum ada validasi apakah performa metode tersebut tetap konsisten pada konteks soal ujian Bahasa Indonesia SD.
 
 Baseline Selection:
 | Baseline | Relevansi | Representatif | Source |
 |----------|-----------|---------------|--------|
-|          |           |               |        |
+|     REPTree + StringToWordVecto     |    Menyelesaikan task yang sama persis       |       Menjadi acuan performa terbaik pada dataset soal ujian        |    Baharuddin & Tjahyanto (2022)    |
+|     Random Forest + TF-IDF     |    Digunakan luas pada klasifikasi teks Bahasa Indonesia      |       Common practice pada banyak studi terbaru        |    Utami (2025), Meinita & Anshori (2025), Nugroho et al. (2025)    |
 ```
 
 ---
@@ -106,16 +123,17 @@ Gunakan topik riset dari WS-02. Cari minimal 5 paper relevan menggunakan Google 
 **Query pencarian:** ____________________________________
 **Database:** ___________________________________________
 
-| # | Study | Tahun | Method | Dataset | Result | Limitasi |
-|---|-------|-------|--------|---------|--------|----------|
-| 1 | *Contoh: Rahman et al.* | *2023* | *CNN* | *ImageNet subset* | *Acc 91%* | *Hanya 3 kelas* |
-| 2 | | | | | | |
-| 3 | | | | | | |
-| 4 | | | | | | |
-| 5 | | | | | | |
+| # | Study                  | Tahun | Method           | Dataset         | Result         | Limitasi               |
+| - | ---------------------- | ----- | ---------------- | --------------- | -------------- | ---------------------- |
+| 1 | Baharuddin & Tjahyanto | 2022  | NB, RF, REPTree  | 418 soal ujian  | REPTree 91,15% | Dataset kecil          |
+| 2 | Putra et al.           | 2026  | NB, RF + SMOTE   | Bank Marketing  | RF 93,08%      | Non-teks               |
+| 3 | Utami                  | 2025  | NB, RF, SVM      | Berita hoaks    | RF 93,2%       | Domain berbeda         |
+| 4 | Meinita & Anshori      | 2025  | NB & RF + TF-IDF | Chatbot CS      | RF 96%         | Tidak uji variasi data |
+| 5 | Nugroho et al.         | 2025  | NB & RF + TF-IDF | Ulasan aplikasi | RF 93%         | Sumber data tunggal    |
 
-**Pola yang terlihat — Metode dominan:** ___________________
-**Limitasi yang berulang:** ______________________________
+
+**Pola yang terlihat — Metode dominan:** Random Forest + TF-IDF
+**Limitasi yang berulang:** Dataset kecil, domain non-pendidikan, dan kurang variasi eksperimen.
 
 ---
 
@@ -123,16 +141,17 @@ Gunakan topik riset dari WS-02. Cari minimal 5 paper relevan menggunakan Google 
 
 Berdasarkan tabel di Latihan 1, identifikasi gap.
 
-| Jenis Gap | Ditemukan? | Gap Statement |
-|-----------|-----------|---------------|
-| Performance Gap | [ ] Ya / [ ] Tidak | *Contoh: Akurasi turun di bawah 80% untuk kelas minoritas* |
-| Method Gap | [ ] Ya / [ ] Tidak | |
-| Data Gap | [ ] Ya / [ ] Tidak | |
-| Context Gap | [ ] Ya / [ ] Tidak | |
+| Jenis Gap       | Ditemukan? | Gap Statement                                                       |
+| --------------- | ---------- | ------------------------------------------------------------------- |
+| Performance Gap | [X] Ya     | Akurasi NB masih rendah pada teks pendidikan Indonesia              |
+| Method Gap      | [X] Ya     | Belum ada TF-IDF dan pipeline Python modern pada dataset soal ujian |
+| Data Gap        | [X] Ya     | Dataset soal ujian masih kecil                                      |
+| Context Gap     | [X] Ya     | Belum ada evaluasi pada domain pendidikan SD                        |
 
-**Gap utama yang dipilih:** _____________________________
+
+**Gap utama yang dipilih:** Method Gap + Context Gap
 **Mengapa gap ini penting (bukan sekadar "belum ada yang meneliti")?**
-> ___________________________________________________
+> Karena penelitian sebelumnya belum membandingkan pendekatan modern klasifikasi teks pada konteks soal ujian Bahasa Indonesia SD, sehingga belum ada referensi yang kuat untuk pengembangan sistem bank soal digital pendidikan Indonesia.
 
 ---
 
@@ -142,11 +161,11 @@ Pilih 2 baseline dari literatur yang sudah dibaca.
 
 | # | Baseline | Mengapa Relevan | Mengapa Representatif | Apakah SOTA? | Sumber |
 |---|----------|----------------|----------------------|-------------|--------|
-| 1 | *Contoh: RF + TF-IDF* | *Task sama: klasifikasi teks* | *Dipakai 6 dari 10 paper* | *Bukan, tapi common practice* | *Lee et al., 2022* |
-| 2 | | | | | |
+| 1 | *REPTree + StringToWordVector* | *Task sama* | *Acuan performa terbaik* | *Ya* | *Baharuddin & Tjahyanto (2022)* |
+| 2 | *RF + TF-IDF* | *Banyak dipakai pada klasifikasi teks Indonesia* | *Common practice terbaru* | *Ya* | *Baharuddin & Utami (2025), Meinita (2025)* |
 
-**Apakah pemilihan baseline ini bisa dianggap straw man?** [ ] Ya / [ ] Tidak
-> Justifikasi: ________________________________________
+**Apakah pemilihan baseline ini bisa dianggap straw man?** [ ] Ya / [X] Tidak
+> Justifikasi: Baseline yang dipilih merupakan metode terbaik pada konteks serupa dan metode yang paling sering digunakan pada penelitian klasifikasi teks Bahasa Indonesia terbaru.
 
 ---
 
@@ -155,5 +174,9 @@ Pilih 2 baseline dari literatur yang sudah dibaca.
 > Apa perbedaan antara "belum ada yang meneliti ini" (klaim tanpa bukti) dengan research gap yang valid? Bagaimana cara membuktikan bahwa sebuah gap benar-benar ada?
 
 **Jawaban:**
-> ___________________________________________________
-> ___________________________________________________
+> Klaim “belum ada yang meneliti ini” tanpa bukti bukan research gap yang valid karena tidak didukung proses penelusuran literatur. Research gap yang valid harus diperoleh melalui pencarian paper secara sistematis, kemudian dianalisis untuk menemukan pola, keterbatasan, dan area yang belum dieksplorasi.
+Gap dapat dibuktikan dengan:
+1.Mendokumentasikan query pencarian
+2.Membuat literature matrix
+3.Membandingkan metode, dataset, dan konteks penelitian
+4.Menunjukkan kombinasi metode–data–konteks yang belum pernah diuji sebelumnya.
