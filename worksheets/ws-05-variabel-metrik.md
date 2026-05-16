@@ -70,15 +70,18 @@ Research Question: ____________________
 
 | Variabel | Tipe | Konsep | Metrik | Skala | Satuan | Cara Mengukur | Justifikasi |
 |----------|------|--------|--------|-------|--------|---------------|-------------|
-|          | IV   |        |        |       |        |               |             |
-|          | DV   |        |        |       |        |               |             |
-|          | CV   |        |        |       |        |               |             |
+| Jenis algoritma klasifikasi | IV   | Pendekatan klasifikasi teks yang digunakan |     Categorical: Naive Bayes / Random Forest / REPTree   |    Nominal   | -|       Ditentukan sebelum eksperimen dan dijalankan pada dataset yang sama        |      Ketiga algoritma mewakili pendekatan berbeda: probabilistik, ensemble, dan decision tree       |
+|Ukuran dataset| IV   |Jumlah data soal yang digunakan|183, 273, dan 418 soal|Ratio|Jumlah soal|Dihitung berdasarkan jumlah data pada setiap iterasi eksperimen|Untuk menguji pengaruh penambahan data terhadap akurasi|
+|Correct Classification Rate| DV   |Tingkat ketepatan algoritma dalam mengklasifikasikan soal| (Jumlah prediksi benar / total data) × 100 |Ratio|Persen (%) |Dihitung otomatis oleh WEKA/Python setelah proses klasifikasi|Menjadi metrik utama pada jurnal primer sehingga hasil dapat dibandingkan langsung|
+|Filter/tokenizer| CV   |Metode preprocessing teks| StringToWordVector atau TF-IDF |Nominal|- |Dikontrol tetap pada setiap pendekatan eksperimen|Perbedaan preprocessing dapat memengaruhi representasi fitur|
+|Distribusi kelas soal| CV   |Proporsi kelas mudah/sedang/sulit|Jumlah soal per kategori|Ratio|Jumlah soal |Dicatat pada setiap iterasi dataset|Class imbalance dapat memengaruhi akurasi model|
+
 
 Alignment Check:
   RQ → Concept → Variable → Metric → Data → Result
-  [ ] Setiap langkah terdokumentasi
-  [ ] Tidak ada "lompatan logis"
-  [ ] Metrik mengukur apa yang dimaksud (construct validity)
+  [X] Setiap langkah terdokumentasi
+  [X] Tidak ada "lompatan logis"
+  [X] Metrik mengukur apa yang dimaksud (construct validity)
 ```
 
 ---
@@ -87,15 +90,17 @@ Alignment Check:
 
 Gunakan RQ dari WS-04. Definisikan variabel dan metriknya.
 
-**RQ:** __________________________________________________
+**RQ:** Apakah algoritma Random Forest dengan TF-IDF menghasilkan correct classification rate (%) lebih tinggi dibandingkan Naive Bayes dan REPTree pada dataset soal ujian Bahasa Indonesia SD, dan apakah peningkatan jumlah data dari 183 ke 273 ke 418 soal berpengaruh signifikan terhadap akurasi ketiga algoritma tersebut?
 
 | Variabel | Tipe | Konsep Abstrak | Metrik Konkret | Skala (NOIR) | Satuan |
 |----------|------|---------------|----------------|-------------|--------|
-| *Contoh: Jenis model* | *IV* | *Pendekatan klasifikasi* | *Categorical: CNN vs RF* | *Nominal* | *—* |
-| | DV | | | | |
-| | CV | | | | |
+| *Jenis algoritma klasifikasi* | *IV* | *Pendekatan klasifikasi teks* | *Naive Bayes / Random Forest / REPTree* | *Nominal* | *—* |
+| *Ukuran dataset* | *IV* | *Jumlah data eksperimen* | *183 / 273 / 418 soal* | *Ratio* | *Jumlah soal* |
+| *Correct Classification Ratei* | *DV* | *Ketepatan klasifikasi model* | *(Prediksi benar / total data) × 100* | *Ratio* | *Persen (%)* |
+| *Filter/tokenizer* | *CV* | *Representasi fitur teks* | *StringToWordVector / TF-IDF* | *Nominal* | *—* |
+| *Distribusi kelas soal* | *CV* | *Proporsi tingkat kesulitan soal* | *Jumlah soal per kategori* | *Ratio* | *Jumlah soal* |
 
-**Apakah ada lompatan logis dalam rantai?** [ ] Ya / [ ] Tidak
+**Apakah ada lompatan logis dalam rantai?** [ ] Ya / [X] Tidak
 > Jika ya, di mana? ____________________________________
 
 ---
@@ -106,15 +111,15 @@ Evaluasi metrik DV yang dipilih di Latihan 1 menggunakan 3 kriteria.
 
 | Kriteria | Skor (1-5) | Justifikasi |
 |----------|-----------|-------------|
-| Representative | *Contoh: 4 — F1-Score mewakili keseimbangan precision-recall* | |
-| Sensitive | | |
-| Feasible | | |
+| Representative | *5* |  *Correct Classification Rate langsung merepresentasikan kemampuan model dalam mengklasifikasikan tingkat kesulitan soal* |
+| Sensitive |  *4* |  *Mampu menangkap perbedaan performa antar algoritma, namun bisa kurang stabil pada dataset kecil* |
+| Feasible |  *5* |  *Mudah diperoleh karena dihitung otomatis oleh WEKA dan Python* |
 
-**Apakah perlu secondary metric?** [ ] Ya / [ ] Tidak
-> Jika ya, apa dan mengapa? _____________________________
+**Apakah perlu secondary metric?** [X] Ya / [ ] Tidak
+> Jika ya, apa dan mengapa? Incorrect Classification Count digunakan sebagai secondary metric untuk memberikan gambaran jumlah kesalahan klasifikasi secara absolut.
 
 **Contoh kasus ceiling effect untuk metrik ini:**
-> ___________________________________________________
+> Jika seluruh algoritma mencapai akurasi di atas 95%, perbedaan antar model menjadi sangat kecil sehingga sulit membedakan performa sebenarnya hanya dengan correct classification rate.
 
 ---
 
@@ -124,10 +129,10 @@ Bayangkan data yang akan dikumpulkan dari eksperimen. Evaluasi 4 dimensi kualita
 
 | Dimensi | Pertanyaan | Jawaban | Strategi Mitigasi |
 |---------|-----------|---------|------------------|
-| Completeness | *Apakah semua data point terkumpul?* | | |
-| Consistency | *Apakah ada kontradiksi internal?* | | |
-| Validity | *Apakah benar-benar mengukur yang dimaksud?* | | |
-| Representativeness | *Apakah sampel mewakili populasi target?* | | |
+| Completeness | *Apakah semua data point terkumpul?* |*Dataset masih terbatas dan kemungkinan jumlah soal sulit lebih sedikit* | *Penambahan data dilakukan bertahap dan distribusi kelas dicatat*|
+| Consistency | *Apakah ada kontradiksi internal?* |*Pelabelan tingkat kesulitan berpotensi subjektif* |*Menggunakan guru yang sama dan kriteria pelabelan konsisten* |
+| Validity | *Apakah benar-benar mengukur yang dimaksud?* |*Akurasi model tidak sepenuhnya menjamin validitas konsep “tingkat kesulitan”* |*Limitasi dicatat dan disarankan multi-rater pada penelitian lanjutan*|
+| Representativeness | *Apakah sampel mewakili populasi target?* |*Dataset hanya berasal dari soal Bahasa Indonesia SD* |*Mengambil soal dari berbagai sumber untuk meningkatkan variasi* |
 
 ---
 
@@ -136,5 +141,5 @@ Bayangkan data yang akan dikumpulkan dari eksperimen. Evaluasi 4 dimensi kualita
 > Mengapa memilih metrik setelah melihat data dianggap p-hacking? Apa bedanya dengan eksplorasi data yang sah?
 
 **Jawaban:**
-> ___________________________________________________
-> ___________________________________________________
+> Memilih metrik setelah melihat data dianggap p-hacking karena peneliti dapat secara tidak sadar memilih metrik yang membuat hasil terlihat lebih baik atau signifikan. Hal ini mengurangi objektivitas penelitian karena keputusan pengukuran dibuat setelah mengetahui hasil eksperimen.
+> Berbeda dengan p-hacking, eksplorasi data yang sah dilakukan secara transparan dan dilaporkan sebagai exploratory finding, bukan sebagai bukti utama hipotesis. Temuan eksploratif boleh digunakan untuk membangun hipotesis baru, tetapi tidak boleh diperlakukan sebagai hasil confirmatory yang sudah direncanakan sejak awal eksperimen.
