@@ -68,36 +68,38 @@ Ancaman validitas harus diidentifikasi **sebelum** eksperimen dan mitigasinya di
 ```
 EXPERIMENT DESIGN
 
-Research Question : ____________________
-Hypothesis        : ____________________
-Tipe Eksperimen   : [ ] Comparison  [ ] Ablation  [ ] Parameter
+Research Question : Apakah Random Forest + TF-IDF menghasilkan correct classification rate lebih tinggi dibandingkan Naive Bayes dan REPTree pada dataset soal ujian Bahasa Indonesia SD, dan apakah peningkatan ukuran dataset (183 → 273 → 418 soal) berpengaruh signifikan terhadap akurasi ketiga algoritma?
+Hypothesis        : H₀: Tidak ada perbedaan signifikan pada CCR (%) antara Naive Bayes, Random Forest, dan REPTree di setiap ukuran dataset.
+H₁: Terdapat perbedaan signifikan pada CCR (%) antara minimal satu pasangan algoritma, dan penambahan data berpengaruh positif terhadap akurasi.
+Tipe Eksperimen   : [X] Comparison  [ ] Ablation  [ ] Parameter
 
 Kondisi Eksperimen:
 | Kondisi | Deskripsi | IV Value | CV Settings |
 |---------|-----------|----------|-------------|
-| Control |           |          |             |
-| Treatment |         |          |             |
+|Control (C1) |Replikasi kondisi awal jurnal primer menggunakan dataset terkecil |NB, RF, REPTree + 183 soal|StringToWordVector; kategori mudah/sedang/sulit; use training set|
+| Treatment 1 (T1) |Pengujian efek penambahan data tahap pertama|NB, RF, REPTree + 273 soal|StringToWordVector; kategori mudah/sedang/sulit; use training set|
+| Treatment 2 (T2) |Pengujian efek penambahan data tahap kedua dengan dataset terbesar|NB, RF, REPTree + 418 soal|StringToWordVector; kategori mudah/sedang/sulit; use training set|
 
 Fairness Checklist:
-  [ ] Dataset identik untuk semua kondisi
-  [ ] Preprocessing setara
-  [ ] Tuning effort setara
-  [ ] Environment identik
-  [ ] Metrik evaluasi sama
+  [X] Dataset identik untuk semua kondisi
+  [X] Preprocessing setara
+  [X] Tuning effort setara
+  [X] Environment identik
+  [X] Metrik evaluasi sama
 
 Threat Analysis:
 | Threat Type | Ancaman Spesifik | Mitigasi |
 |-------------|-----------------|----------|
-| Internal    |                 |          |
-| External    |                 |          |
-| Construct   |                 |          |
-| Conclusion  |                 |          |
+| Internal    |Pelabelan tingkat kesulitan dilakukan oleh 1 guru sehingga berpotensi subjektif|Menggunakan guru yang sama dan kriteria penilaian konsisten pada seluruh dataset|
+| External    |Dataset hanya berasal dari soal Bahasa Indonesia SD |Limitasi generalisasi dijelaskan dan direkomendasikan perluasan domain pada penelitian lanjutan|
+| Construct   |CCR hanya mengukur kecocokan prediksi terhadap label guru, bukan validitas psikometri tingkat kesulitan|Menambahkan Incorrect Classification Count sebagai secondary metric dan mendokumentasikan keterbatasan konstruk |
+| Conclusion  |Dataset maksimal hanya 418 soal sehingga estimasi akurasi berpotensi tidak stabil|Replikasi eksperimen beberapa kali dan melaporkan hasil secara deskriptif|
 
 Statistical Plan:
-  Uji statistik   : ____________________
-  Justifikasi      : ____________________
-  Alpha            : ____________________
-  Effect size min  : ____________________
+  Uji statistik   : Perbandingan deskriptif correct classification rate (%) antar algoritma pada setiap ukuran dataset.
+  Justifikasi      : Ukuran dataset relatif kecil dan penelitian primer juga menggunakan pendekatan deskriptif sehingga belum dilakukan uji inferensial formal.
+  Alpha            : Tidak diterapkan; jika penelitian lanjutan menggunakan uji inferensial maka α = 0,05.
+  Effect size min  : Perbedaan CCR ≥ 5% dianggap bermakna secara praktis.
 ```
 
 ---
@@ -106,13 +108,14 @@ Statistical Plan:
 
 Susun desain eksperimen berdasarkan RQ, variabel, dan sistem dari WS-04 sampai WS-06.
 
-**RQ:** __________________________________________________
-**Tipe eksperimen:** [ ] Comparison / [ ] Ablation / [ ] Parameter
+**RQ:** Apakah algoritma Random Forest dengan TF-IDF menghasilkan correct classification rate (%) lebih tinggi dibandingkan Naive Bayes dan REPTree pada dataset soal ujian Bahasa Indonesia SD, dan apakah peningkatan jumlah data dari 183 ke 273 ke 418 soal berpengaruh signifikan terhadap akurasi ketiga algoritma tersebut?
+**Tipe eksperimen:** [X] Comparison / [ ] Ablation / [ ] Parameter
 
 | Kondisi | Deskripsi | IV Value | CV Settings |
 |---------|-----------|----------|-------------|
-| Control | *Contoh: RF baseline dari literatur* | *RF* | *Dataset X, 80:20 split, seed 42* |
-| Treatment | | | |
+| Control | *Replikasi dataset awal jurnal primer* | *NB, RF, REPTree + 183 soal* | *StringToWordVector; use training set; WEKA* |
+| Treatment 1 | *Pengujian dataset menengah* | *NB, RF, REPTree + 273 soal* | *StringToWordVector; use training set; WEKA* |
+| Treatment 2 | *Pengujian dataset terbesar* | *NB, RF, REPTree + 418 soal* | *StringToWordVector; use training set; WEKA* |
 
 ---
 
@@ -122,13 +125,13 @@ Evaluasi apakah desain eksperimen di Latihan 1 sudah fair.
 
 | Kriteria | Status | Detail |
 |----------|--------|--------|
-| Dataset identik | *Contoh: ✅ — sama-sama pakai CIC-MalMem-2022* | |
-| Preprocessing setara | | |
-| Tuning effort setara | | |
-| Environment identik | | |
-| Metrik evaluasi sama | | |
+| Dataset identik | *✅* | *Semua algoritma menggunakan dataset yang sama pada setiap iterasi* |
+| Preprocessing setara | *✅* | *StringToWordVector diterapkan dengan parameter identik* |
+| Tuning effort setara | *✅* | *Semua algoritma menggunakan parameter default WEKA* |
+| Environment identik | *✅* | *Seluruh eksperimen dijalankan pada perangkat dan versi software yang sama* |
+| Metrik evaluasi sama | *✅* | *Semua kondisi menggunakan CCR (%) sebagai metrik utama* |
 
-**Ada yang tidak fair?** [ ] Ya / [ ] Tidak
+**Ada yang tidak fair?** [ ] Ya / [X] Tidak
 > Jika ya, bagaimana cara memperbaikinya? ________________
 
 ---
@@ -139,14 +142,14 @@ Identifikasi ancaman validitas untuk desain eksperimen ini.
 
 | Threat Type | Ancaman Spesifik | Mitigasi |
 |-------------|-----------------|----------|
-| Internal | *Contoh: Data leakage antara train-test* | *Contoh: Gunakan stratified split, validasi tidak ada overlap* |
-| External | | |
-| Construct | | |
-| Conclusion | | |
+| Internal | *Risiko subjektivitas label tingkat kesulitan* | *Menggunakan satu guru berpengalaman dengan kriteria konsisten* |
+| External | *Dataset hanya mencakup satu domain pelajaran* | *Menyatakan keterbatasan generalisasi secara eksplisit* |
+| Construct | *CCR tidak mengukur validitas psikometri tingkat kesulitan* | *Menambahkan secondary metric dan dokumentasi limitasi* |
+| Conclusion | *Jumlah data kecil dan tidak ada uji inferensial* | *Hasil dilaporkan deskriptif dan tidak membuat klaim kausalitas kuat* |
 
-**Ancaman mana yang paling sulit dimitigasi?** _____________
+**Ancaman mana yang paling sulit dimitigasi?** Construct Validity
 **Mengapa?**
-> ___________________________________________________
+> Karena konsep “tingkat kesulitan soal” bersifat subjektif dan belum memiliki standar psikometri yang benar-benar baku pada konteks soal Bahasa Indonesia SD. Walaupun label dibuat konsisten, tetap ada kemungkinan interpretasi tingkat kesulitan berbeda antar guru.
 
 ---
 
@@ -155,6 +158,6 @@ Identifikasi ancaman validitas untuk desain eksperimen ini.
 > Sebuah paper melaporkan "metode kami mengalahkan semua baseline." Apa 3 pertanyaan pertama yang harus diajukan untuk mengevaluasi klaim ini?
 
 **Jawaban:**
-1. ___________________________________________________
-2. ___________________________________________________
-3. ___________________________________________________
+1. Apakah baseline yang digunakan benar-benar representatif dan relevan dengan state-of-the-art?
+2. Apakah semua metode diuji pada kondisi eksperimen yang identik dan fair?
+3. Apakah ukuran dataset, metrik, dan analisis statistik cukup kuat untuk mendukung klaim tersebut?
