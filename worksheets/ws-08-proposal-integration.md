@@ -61,25 +61,34 @@ Problem (Bab 2) → Gap (Bab 3) → RQ & H (Bab 4) → Metrik (Bab 5) → Sistem
 PROPOSAL INTEGRATION CHECKLIST
 
 Koneksi Vertikal (Flow Atas-Bawah):
-  [ ] Problem → Gap: masalah terdokumentasi di literatur
-  [ ] Gap → RQ: pertanyaan menjawab gap spesifik
-  [ ] RQ → Hypothesis: hipotesis memprediksi jawaban
-  [ ] Hypothesis → Metric: metrik mengukur variabel dalam hipotesis
-  [ ] Metric → System: komponen sistem menghasilkan/mengukur metrik
-  [ ] System → Experiment: desain eksperimen menggunakan sistem
+  [X] Problem → Gap:Masalah terdokumentasi dari analisis literatur
+  hasil penelitian sebelumnya tentang Naive Bayes vs Random Forest pada klasifikasi teks Bahasa Indonesia     masih berbeda-beda tergantung dataset, preprocessing, dan domain sehingga menunjukkan adanya gap            penelitian yang nyata.
+  [X] Gap → RQ: pertanyaan menjawab gap spesifik
+  penelitian secara spesifik menanyakan apakah Random Forest menghasilkan performa lebih baik dibanding       Naive Bayes menggunakan TF-IDF pada dataset ulasan aplikasi Bahasa Indonesia dengan kondisi eksperimen      yang terkontrol.
+  [X] RQ → Hypothesis: hipotesis memprediksi jawaban
+  H₀ dan H₁ memprediksi jawaban RQ secara falsifiable menggunakan metrik accuracy, precision, recall, dan     F1-score.
+  [X] Hypothesis → Metric: metrik mengukur variabel dalam hipotesis
+  Metrik accuracy, precision, recall, dan F1-score secara langsung mengoperasionalisasikan konsep “performa   klasifikasi sentimen” dalam hipotesis.
+  [X] Metric → System: komponen sistem menghasilkan/mengukur metrik
+  Setiap metrik dihasilkan otomatis oleh modul evaluasi classification_report dari scikit-learn sehingga      seluruh DV memiliki komponen sistem pengukurnya.
+  [X] System → Experiment: desain eksperimen menggunakan sistem
+  Desain eksperimen menggunakan sistem sebagai instrumen: modul classifier dapat di-swap antara Naive Bayes   dan Random Forest sementara dataset, preprocessing, TF-IDF, dan train-test split dijaga tetap identik.
 
 Koneksi Horizontal (Konsistensi):
-  [ ] Istilah sama di semua bagian
-  [ ] Variabel di RQ = variabel di hipotesis = metrik di desain
-  [ ] Scope tidak berubah dari masalah ke eksperimen
+  [X] Istilah sama di semua bagian
+      Istilah “Naive Bayes”, “Random Forest”, “TF-IDF”, “ulasan aplikasi Bahasa Indonesia”, “accuracy”,           “precision”, “recall”, dan “F1-score” digunakan secara konsisten dari WS-02 sampai WS-07.
+  [X] Variabel di RQ = variabel di hipotesis = metrik di desain
+      IV = jenis algoritma (NB vs RF); DV = performa klasifikasi; CV = dataset, preprocessing, TF-IDF, dan        train-test split konsisten di seluruh bagian proposal.
+  [X] Scope tidak berubah dari masalah ke eksperimen
+      Scope penelitian tetap fokus pada klasifikasi sentimen ulasan aplikasi Bahasa Indonesia menggunakan         Naive Bayes dan Random Forest berbasis TF-IDF tanpa melebar ke deep learning atau domain lain.
 
 Rubrik Self-Assessment:
 | Kriteria | 1 (Lemah) | 2 (Cukup) | 3 (Baik) | Skor |
 |----------|-----------|-----------|----------|------|
-| Koherensi |          |           |          |      |
-| Specificity |        |           |          |      |
-| Feasibility |        |           |          |      |
-| Rigor     |          |           |          |      |
+| Koherensi | Banyak koneksi putus | Sebagian terhubung |Semua koneksi terdokumentasi| 3 |
+| Specificity | Variabel abstrak | Sebagian terdefinisi | Semua variabel dan metrik teroperasionalisasi | 3 |
+| Feasibility | Tidak realistis | Sebagian dapat dilakukan | Realistis dan terjadwal | 2 |
+| Rigor     | Tidak ada kontrol | Beberapa dikontrol | Eksperimen terkontrol dan tervalidasi | 2 |
 ```
 
 ---
@@ -90,13 +99,14 @@ Kumpulkan hasil dari WS-02 sampai WS-07 menjadi satu ringkasan proposal.
 
 | Komponen | Sumber | Isi (1-2 kalimat) |
 |----------|--------|-------------------|
-| Problem Statement | WS-02 | *Contoh: Sistem rekomendasi memiliki akurasi tinggi (RMSE 0.87) tetapi satisfaction score rendah (45/100). Gap antara metrik teknis dan kepuasan pengguna belum diteliti.* |
-| Gap | WS-03 | *Contoh: Tidak ada studi yang mengintegrasikan collaborative filtering dengan user-context signals untuk meningkatkan satisfaction.* |
+| Problem Statement | WS-02 | *Belum jelas algoritma mana yang paling efektif untuk analisis sentimen teks Bahasa Indonesia pada konteks ulasan aplikasi karena hasil penelitian sebelumnya berbeda-beda tergantung dataset, preprocessing, dan ukuran data. Perbedaan hasil tersebut menunjukkan perlunya eksperimen yang lebih terkontrol dan terstandarisasi.* |
+| Gap | WS-03 | *Belum ada perbandingan sistematis antara Naive Bayes dan Random Forest menggunakan TF-IDF pada dataset ulasan aplikasi Bahasa Indonesia dengan evaluasi accuracy, precision, recall, dan F1-score dalam kondisi eksperimen yang fair dan terkontrol.* |
 | RQ | WS-04 | *Contoh: Apakah penambahan context-aware signals pada collaborative filtering meningkatkan satisfaction score tanpa menurunkan RMSE?* |
-| Hipotesis | WS-04 | *Contoh: H₁: Sistem CF+context menghasilkan satisfaction ≥ 70/100 dengan RMSE ≤ 0.90 dibanding baseline CF murni.* |
-| Variabel & Metrik | WS-05 | *Contoh: IV = jenis sistem (CF vs CF+context); DV = satisfaction score (skala 0-100) + RMSE (regresi).* |
-| Sistem | WS-06 | |
-| Desain Eksperimen | WS-07 | |
+| RQ | WS-04 | *Apakah Random Forest menghasilkan performa klasifikasi sentimen yang lebih baik dibanding Naive Bayes menggunakan TF-IDF pada dataset ulasan aplikasi Bahasa Indonesia berdasarkan accuracy, precision, recall, dan F1-score?.* |
+| Hipotesis | WS-04 | *H₀: Tidak ada perbedaan signifikan performa antara Naive Bayes dan Random Forest. H₁: Random Forest menghasilkan performa lebih baik dibanding Naive Bayes berdasarkan accuracy, precision, recall, dan F1-score.* |
+| Variabel & Metrik | WS-05 | *IV = jenis algoritma (NB vs RF); DV = accuracy, precision, recall, F1-score; CV = dataset, preprocessing, TF-IDF, dan train-test split 80:20.* |
+| Sistem | WS-06 | *Pipeline sistem terdiri dari preprocessing teks → TF-IDF Vectorizer → modul classifier (NB/RF) → modul evaluasi classification_report sklearn. Setiap komponen dipetakan langsung ke variabel penelitian.* |
+| Desain Eksperimen | WS-07 | *Comparison study: Naive Bayes dan Random Forest diuji menggunakan dataset, preprocessing, TF-IDF, split data, dan environment yang identik sehingga hanya algoritma yang berubah.* |
 
 ---
 
@@ -106,18 +116,18 @@ Verifikasi 6 koneksi kritis. Isi dengan merujuk tabel di Latihan 1.
 
 | Koneksi | Status | Bukti |
 |---------|--------|-------|
-| Problem → Gap | *Contoh: ✅ — gap muncul dari 15 paper Bab 3 yang tidak ada yang mengkombinasikan CF + context untuk satisfaction* | |
-| Gap → RQ | *Contoh: ✅ — RQ langsung menanyakan apakah CF+context meningkatkan satisfaction* | |
-| RQ → Hypothesis | *Contoh: ✅ — H₁ memprediksi satisfaction ≥ 70 dengan threshold RMSE ≤ 0.90* | |
-| Hypothesis → Metric | | |
-| Metric → System | | |
-| System → Experiment | | |
+| Problem → Gap | *✅* | *Gap berasal dari literature review WS-03 yang menunjukkan hasil NB vs RF masih inkonsisten di berbagai domain teks Bahasa Indonesia.* |
+| Gap → RQ | *✅* | *RQ secara langsung menanyakan apakah RF lebih baik dibanding NB pada konteks yang sama dengan gap.* |
+| RQ → Hypothesis | *✅* | *H₀ dan H₁ memprediksi jawaban RQ secara eksplisit dan dapat diuji secara empiris.* |
+| Hypothesis → Metric |*✅* | *Variabel performa dioperasionalisasikan menjadi accuracy, precision, recall, dan F1-score.* |
+| Metric → System | *✅*| *Semua metrik dihasilkan langsung oleh modul evaluasi sklearn.* |
+| System → Experiment |*✅* | *Eksperimen menggunakan pipeline identik dengan hanya mengganti algoritma classifier.* |
 
-**Koneksi mana yang paling lemah?** _______________________
+**Koneksi mana yang paling lemah?** Hypothesis → Metric
 **Bagaimana cara memperkuatnya?**
-> ___________________________________________________
+> Menambahkan threshold numerik eksplisit pada hipotesis, misalnya “Random Forest menghasilkan F1-score minimal 5% lebih tinggi dibanding Naive Bayes”, sehingga hipotesis tidak hanya menyatakan arah perbedaan tetapi juga magnitude yang dianggap bermakna.
 
-**Konsistensi horizontal — apakah istilah dan scope konsisten?** [ ] Ya / [ ] Tidak
+**Konsistensi horizontal — apakah istilah dan scope konsisten?** [X] Ya / [ ] Tidak
 > Jika tidak, di bagian mana terjadi inkonsistensi? _________
 
 ---
@@ -128,14 +138,14 @@ Evaluasi proposal mini menggunakan rubrik.
 
 | Kriteria | Skor (1-3) | Justifikasi |
 |----------|-----------|-------------|
-| Koherensi | *Contoh: 2 — koneksi gap→RQ masih lemah karena gap belum cukup narrow* | |
-| Specificity | *Contoh: 3 — metrik (satisfaction 0-100, RMSE) sudah terdefinisi numerik* | |
-| Feasibility | | |
-| Rigor | | |
+| Koherensi | *3* | *Seluruh koneksi Problem → Gap → RQ → Hipotesis → Metrik → Sistem → Eksperimen saling terhubung dan tidak ada lompatan logis.* |
+| Specificity | *3* | *Variabel, dataset, metrik, tools, dan konfigurasi eksperimen sudah dijelaskan secara konkret dan numerik.* |
+| Feasibility | *2* | *Pipeline implementasi realistis, tetapi kualitas dan ukuran dataset masih perlu dipastikan agar representatif.* |
+| Rigor | *2* | *Desain eksperimen sudah fair dan terkontrol, namun belum menggunakan uji statistik inferensial formal.* |
 
-**Skor total:** _____ / 12
+**Skor total:** 10 / 12
 
-**Apakah proposal siap untuk fase eksekusi?** [ ] Ya / [ ] Belum
+**Apakah proposal siap untuk fase eksekusi?** [X] Ya / [ ] Belum
 > Jika belum, apa yang perlu diperbaiki? __________________
 
 ---
@@ -144,8 +154,8 @@ Evaluasi proposal mini menggunakan rubrik.
 
 > Dari seluruh proses WS-01 sampai WS-08, bagian mana yang paling mudah dan paling sulit? Mengapa? Apa yang akan dilakukan berbeda jika mengulang dari awal?
 
-**Bagian termudah:** ____________________________________
-**Bagian tersulit:** ____________________________________
+**Bagian termudah:** WS-06 (System-Experiment Mapping) Karena seluruh variabel dan pipeline penelitian sudah jelas sehingga pemetaan komponen sistem ke variabel dapat dilakukan secara langsung.
+**Bagian tersulit:** WS-03 (Literature Mapping & Gap)  Karena harus membaca dan membandingkan banyak paper secara konseptual untuk menemukan gap yang benar-benar valid dan didukung bukti literatur.
 **Yang akan dilakukan berbeda:**
-> ___________________________________________________
-> ___________________________________________________
+> Pertama, menentukan dataset sejak awal sebelum menyusun RQ agar feasibility penelitian lebih terjamin.
+> Kedua, sejak awal menetapkan threshold numerik pada hipotesis sehingga hubungan antara RQ, hipotesis, metrik, dan eksperimen menjadi lebih kuat dan spesifik.
