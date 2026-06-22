@@ -43,6 +43,19 @@ Jika variabel tidak bisa di-map ke komponen apapun → arsitektur perlu didesain
 - **Configuration-driven** — Ubah config (YAML/JSON), bukan code
 - **Feature toggles** — On/off flag untuk ablation study
 
+  Contoh config YAML dengan feature toggles:
+  ```yaml
+  model:
+    type: cnn          # IV: ganti "rf" untuk kondisi baseline
+  features:
+    use_temporal: true  # toggle komponen temporal
+    use_normalization: true  # toggle preprocessing
+  experiment:
+    seed: 42
+    runs: 5
+  ```
+  Dengan pendekatan ini, berbeda kondisi eksperimen = berbeda satu baris config, **tanpa mengubah kode**.
+
 ### Research vs Engineering
 
 | Aspek | Engineering | Research |

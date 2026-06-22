@@ -26,8 +26,20 @@ Problem (Bab 2) → Gap (Bab 3) → RQ & H (Bab 4) → Metrik (Bab 5) → Sistem
 
 ### Koherensi Vertikal + Horizontal
 
-- **Vertikal** — Alur logis atas-ke-bawah (problem → experiment)
+- **Vertikal** — Alur logis atas-ke-bawah (problem → experiment). Setiap section menjawab pertanyaan yang diangkat section sebelumnya dan memunculkan pertanyaan baru.
 - **Horizontal** — Konsistensi terminologi (nama variabel di RQ = di hipotesis = di metrik = di desain)
+
+**Operasionalisasi Red Thread** (benang merah):
+```
+Bab 2 (Problem) → | memperkenalkan masalah X + evidensi |
+                          ↓ menimbulkan pertanyaan: "apa akar gap-nya?"
+Bab 3 (Gap)     → | menjawab pertanyaan tadi + membuka "lalu apa yang perlu diteliti?" |
+                          ↓
+Bab 4 (RQ/H)    → | menjawab gap dengan pertanyaan spesifik + prediksi terukur |
+                          ↓
+Bab 5-7 (Method)→ | menjawab RQ melalui desain eksperimen yang tepat |
+```
+Jika ada lompatan (section B tidak menjawab pertanyaan section A), red thread putus.
 
 ### Jebakan Kognitif
 
@@ -81,6 +93,13 @@ Koneksi Horizontal (Konsistensi):
       IV = jenis algoritma (NB vs RF); DV = performa klasifikasi; CV = dataset, preprocessing, TF-IDF, dan        train-test split konsisten di seluruh bagian proposal.
   [X] Scope tidak berubah dari masalah ke eksperimen
       Scope penelitian tetap fokus pada klasifikasi sentimen ulasan aplikasi Bahasa Indonesia menggunakan         Naive Bayes dan Random Forest berbasis TF-IDF tanpa melebar ke deep learning atau domain lain.
+
+Cognitive Trap Checklist:
+  [ ] Tidak ada paragraf "promosi" di pendahuluan (hanya data & gap)
+  [ ] Metodologi disesuaikan ke RQ, bukan copy-paste textbook
+  [ ] Timeline sudah ditambah buffer 30-50% dari estimasi awal
+  [ ] Proposal mengakui kemungkinan H0 tidak ditolak (honest uncertainty)
+  [ ] Tidak ada klaim "pasti berhasil" atau "meningkatkan signifikan"
 
 Rubrik Self-Assessment:
 | Kriteria | 1 (Lemah) | 2 (Cukup) | 3 (Baik) | Skor |
