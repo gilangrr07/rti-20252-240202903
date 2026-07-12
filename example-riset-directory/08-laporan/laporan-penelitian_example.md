@@ -1,25 +1,26 @@
 # Laporan Penelitian
 
-**Judul:** Performance and Security Evaluation of Mitigating JWKS Endpoint Flooding on Microservices Gateway Using Redis-PostgreSQL Hybrid Caching
+**Judul:** Perbandingan Algoritma Naïve Bayes dan Random Forest untuk Analisis Sentimen Ulasan Aplikasi Gojek Berbahasa Indonesia Menggunakan TF-IDF
 
-**Peneliti:** Helmi Bahar Alim
-**Target Publikasi:** Sinta 2 (Jurnal RESTI/Telematika) atau Scopus Q3–Q4
-**Status Penelitian:** Tahap 1–4 selesai; Tahap 5 (draf naskah jurnal) sedang berjalan ([../07-manuskrip/](../07-manuskrip/))
+**Peneliti:** Mohamad Gilang Rizki Riomdona (240202903)
+**Dosen Pengampu:** Helmi Bahar Alim, S.Kom., M.Kom
+**Target Publikasi:** Jurnal terindeks SINTA 3 atau lebih tinggi, bidang informatika/ilmu komputer Bahasa Indonesia
+**Status Penelitian:** WS-09 s.d. WS-15 selesai; naskah jurnal telah disusun ([07-manuskrip/naskah-jurnal.md](naskah-jurnal.md)); menyisakan finalisasi format submission
 
 ---
 
 ## 1. Ringkasan Eksekutif
 
-Penelitian ini merancang, mengimplementasikan, dan mengevaluasi secara empiris mekanisme **Redis-PostgreSQL Hybrid Caching** sebagai mitigasi kerentanan **JWKS Endpoint Flooding** pada API Gateway berbasis Go (Echo). Evaluasi dilakukan melalui eksperimen terkontrol: satu gateway dengan dua mode operasi (`CACHE_MODE=none` sebagai baseline dan `CACHE_MODE=hybrid` sebagai mitigasi), diuji terhadap 5 varian traffic (legitimate, dua varian serangan, dan dua varian campuran) masing-masing 40 replikasi — total **400 pengujian beban** menggunakan k6, dengan pengukuran latensi, throughput, metrik internal gateway (Prometheus), dan penggunaan resource container (CPU/memori).
+Penelitian ini merancang dan mengevaluasi secara empiris perbandingan performa **Naïve Bayes (NB)** dan **Random Forest (RF)** dalam klasifikasi sentimen ulasan aplikasi Gojek berbahasa Indonesia menggunakan TF-IDF sebagai ekstraksi fitur. Evaluasi dilakukan melalui eksperimen terkontrol: satu pipeline klasifikasi dengan dua kondisi algoritma (Kondisi A = Naïve Bayes, Kondisi B = Random Forest), diuji pada dataset publik Kaggle (100.000 ulasan, 50.000 positif + 50.000 negatif) dengan **5 replikasi** (seed berbeda: 42, 123, 456, 789, 2024) per algoritma — total **10 run** — menggunakan pipeline preprocessing seragam (case folding, cleansing, stopword removal NLTK, stemming Sastrawi) dan pengukuran accuracy, precision, recall, F1-score, serta waktu latih.
 
 **Temuan utama:**
 
-- Mitigasi **tidak menambah overhead** pada kondisi normal (latensi hybrid sedikit lebih rendah dari baseline).
-- Mitigasi **menurunkan beban query PostgreSQL sebesar 93,2%–99,997%** dan **CPU PostgreSQL dari 64–154% menjadi <2,5%** pada mayoritas skenario.
-- Mitigasi **melindungi latensi traffic legitimate** saat sistem diserang ($D_{perf}$ p95 = -92,9% pada `mixed-unique`, -39,5% pada `mixed-pool`).
-- Ditemukan **trade-off**: pada pola serangan dengan `kid` selalu baru (`*-unique`), rate-limiting berbasis UPSERT per `client_ip` di PostgreSQL menjadi titik kontensi *lock*, sehingga CPU PostgreSQL tetap tinggi (103–124%) dan latensi traffic penyerang pada mode hybrid justru lebih buruk daripada baseline.
+- Random Forest **secara konsisten mengungguli** Naïve Bayes pada seluruh 5 replikasi tanpa kecuali (accuracy 89,59% ± 0,18 vs 89,14% ± 0,19, selisih 0,45 poin).
+- Signifikansi statistik **bergantung pada uji yang dipilih**: paired t-test menyatakan signifikan (p=0,0047), sedangkan Wilcoxon signed-rank test — yang lebih tepat karena distribusi accuracy Random Forest melanggar asumsi normalitas (Shapiro-Wilk p=0,0069) — menyatakan marginal (p=0,0625).
+- **Random Forest ~89× lebih lambat dilatih** dibanding Naïve Bayes (28,52 detik vs 0,32 detik per run), sebuah trade-off akurasi vs biaya komputasi yang perlu dipertimbangkan pada implementasi praktis.
+- Ditemukan **temuan metodologis penting**: implementasi awal skrip eksperimen multi-run (versi 1) tidak menyertakan tahap preprocessing linguistik akibat kelalaian saat menulis ulang kode dari notebook eksplorasi. Setelah dikonfirmasi dan diperbaiki (versi 2), gap performa RF-NB menyusut dari **1,71 poin** (tanpa preprocessing) menjadi **0,45 poin** (dengan preprocessing) — bukti kuantitatif bahwa kesimpulan komparasi algoritma sensitif terhadap keputusan preprocessing.
 
-Seluruh kode sumber, data eksperimen, skrip analisis, tabel, dan figure tersedia di repository ini (lihat §7 Lampiran untuk peta artefak).
+Seluruh kode sumber, data eksperimen, worksheet analisis, dan naskah tersedia pada dokumen-dokumen terkait (lihat §7 Lampiran untuk peta artefak).
 
 ---
 
@@ -27,177 +28,160 @@ Seluruh kode sumber, data eksperimen, skrip analisis, tabel, dan figure tersedia
 
 ### 2.1 Latar Belakang
 
-API Gateway pada arsitektur microservices umumnya memvalidasi JSON Web Token (JWT) dengan mengambil kunci publik penandatangan dari *JSON Web Key Set* (JWKS) berdasarkan *Key ID* (`kid`) pada header token. Pada implementasi naif, setiap `kid` yang belum dikenal memicu *lookup* baru ke backing store (database/Identity Service). Penyerang dapat mengeksploitasi pola ini — yang dalam penelitian ini disebut **JWKS Endpoint Flooding** (selaras dengan kelas kerentanan CVE-2026-48524, perlu diverifikasi — lihat [../02-literatur/matriks-literatur.md](../02-literatur/matriks-literatur.md)) — dengan membanjiri gateway menggunakan JWT ber-`kid` acak, sehingga beban *lookup* ke database bertumbuh linear terhadap *request rate* penyerang dan berpotensi menyebabkan *resource exhaustion* yang menurunkan kualitas layanan bagi pengguna sah.
+Gojek merupakan platform super-app dengan puluhan juta pengguna aktif di Indonesia yang mengumpulkan ribuan ulasan pengguna setiap harinya di Google Play Store. Ulasan-ulasan ini mengandung opini, keluhan, dan apresiasi yang berpotensi besar sebagai sumber intelijen bisnis, namun membacanya secara manual tidak memungkinkan pada skala tersebut. Analisis sentimen otomatis berbasis machine learning menjadi solusi yang relevan, dengan Naïve Bayes dan Random Forest sebagai dua algoritma yang paling umum digunakan untuk klasifikasi teks Bahasa Indonesia — namun performa keduanya dilaporkan tidak konsisten antar-studi (gap akurasi RF terhadap NB berkisar 1–24 poin tergantung domain), dan belum ada studi yang membandingkan keduanya secara terkontrol khusus pada ulasan aplikasi Gojek.
 
 ### 2.2 Rumusan Masalah
 
-1. Bagaimana merancang mekanisme caching pada API Gateway yang membatasi dampak JWKS Endpoint Flooding terhadap beban database backend, tanpa menambah latensi signifikan pada traffic legitimate?
-2. Seberapa besar efektivitas skema Redis-PostgreSQL Hybrid Caching (positive cache, negative cache, rate limiting berbasis PostgreSQL) dalam menurunkan beban query database dan penggunaan CPU selama serangan?
-3. Bagaimana dampak ($D_{perf}$) mitigasi terhadap latensi traffic legitimate, baik pada kondisi normal maupun saat berjalan bersamaan dengan traffic serangan?
-4. Apakah strategi serangan `kid` selalu baru (`unique`) vs `kid` berulang dari pool kecil (`pool`) menghasilkan efektivitas dan trade-off mitigasi yang berbeda?
+1. Apakah Random Forest menghasilkan performa klasifikasi sentimen yang lebih baik dibandingkan Naïve Bayes menggunakan TF-IDF pada dataset ulasan aplikasi Gojek berbahasa Indonesia, berdasarkan accuracy, precision, recall, dan F1-score?
+2. Seberapa besar dan seberapa konsisten selisih performa tersebut di seluruh replikasi (seed) yang diuji?
+3. Bagaimana signifikansi statistik dari selisih performa tersebut, dengan mempertimbangkan asumsi distribusi data (normalitas)?
+4. Sejauh mana keputusan preprocessing (pipeline linguistik Bahasa Indonesia) memengaruhi besaran gap performa antara kedua algoritma?
 
 ### 2.3 Tujuan Penelitian
 
-Detail tujuan & kontribusi: lihat [../01-proposal/proposal-penelitian.md](../01-proposal/proposal-penelitian.md) §3 dan §5, serta [../07-manuskrip/02-pendahuluan.md](../07-manuskrip/02-pendahuluan.md).
+Detail tujuan & kontribusi: lihat [proposal-penelitian.md](proposal-penelitian.md) bagian D dan F, serta [naskah-jurnal.md](naskah-jurnal.md) §1 Pendahuluan.
 
 ---
 
 ## 3. Metodologi dan Pelaksanaan
 
-Penelitian dilaksanakan dalam 5 tahap. Bagian ini merangkum implementasi dan verifikasi setiap tahap; detail teknis lengkap ada pada dokumen `09-docs/tahap-N-*.md` yang dirujuk.
+Penelitian dilaksanakan dalam 7 tahap (WS-09 s.d. WS-15). Bagian ini merangkum implementasi dan verifikasi setiap tahap; detail teknis lengkap ada pada dokumen worksheet yang dirujuk.
 
-### 3.1 Tahap 1 — Perancangan Arsitektur & Skema Database
+### 3.1 WS-09 — Experimental Design & Setup
 
-**Status: Selesai.** Dirancang arsitektur tiga komponen (Gateway Go/Echo, Redis sebagai L1 cache murni, PostgreSQL sebagai L2/*source of truth*), alur resolusi kunci (positive cache → negative cache → rate-limit PostgreSQL → query `signing_keys`), skema tabel `signing_keys` dan `rate_limit_counters` (dengan *stored procedure* `upsert_rate_limit_counter` untuk UPSERT atomik), dan skema key Redis (`jwks:kid:<kid>`, `jwks:negative:<kid>`). Mode eksperimen `CACHE_MODE=none|hybrid` dirancang sejak tahap ini agar perbandingan baseline-vs-mitigated dapat dilakukan pada infrastruktur identik.
+**Status: Selesai.** Dirancang controlled comparison experiment dengan satu variabel independen (jenis algoritma: NB vs RF), satu variabel dependen (performa klasifikasi via 4 metrik), dan variabel kontrol yang dikunci (dataset, preprocessing, TF-IDF, split, environment). Artifact dipetakan ke 5 modul: Dataset Loader (mengunci CV data), Preprocessing (mengunci CV preprocessing), TF-IDF Vectorizer (mengunci CV ekstraksi fitur), Classifier (IV, dapat ditukar antara NB/RF), dan Evaluator (menghasilkan DV).
 
-Detail & diagram: [../09-docs/tahap-1-arsitektur-dan-skema-database.md](../09-docs/tahap-1-arsitektur-dan-skema-database.md), [../03-teori/arsitektur-dan-skema.md](../03-teori/arsitektur-dan-skema.md).
+Detail & diagram: [arsitektur-dan-skema.md](arsitektur-dan-skema.md).
 
-### 3.2 Tahap 2 — Implementasi API Gateway (Go)
+### 3.2 WS-10 — Execution Plan & Data Collection
 
-**Status: Selesai.** Gateway diimplementasikan dengan struktur *clean architecture* per *bounded context* (`internal/jwks`, `internal/ratelimit`, `internal/jwtauth`, `internal/httpapi`, `internal/platform`, `internal/metrics`), menggunakan Echo, `pgx`/`pgxpool`, `go-redis/redis/v9`, `golang-jwt/jwt/v5`, dan `prometheus/client_golang`. Deliverable: migrasi SQL (Sqitch), skrip seed (generate RSA-2048 keypair + sample JWT), middleware verifikasi JWT dengan resolusi `kid` untuk kedua mode, endpoint `/api/resource`, `/healthz`, `/metrics`, serta `docker-compose.yml` dengan healthcheck.
+**Status: Selesai — 10 run (2 versi) telah dijalankan.** Disusun execution plan untuk 10 run (5 seed × 2 algoritma) dengan seed pre-determined sebelum eksekusi, dan format data logging JSON terstruktur per run (identitas, konfigurasi, hasil metrik, confusion matrix, status anomali) — bukan sekadar output terminal yang di-copy-paste.
 
-**Verifikasi end-to-end** (manual via curl, kedua mode):
-- *Hybrid*: kid valid → `200` (cache miss → DB → fill cache → cache hit pada request berikutnya); kid tidak dikenal → `401 invalid_kid` (negative cache, tidak ada query DB berulang); flood concurrent kid unik → sebagian `429 rate_limited` setelah >20 req/detik per `client_ip`.
-- *None*: kid valid selalu `200` dengan `jwksgw_db_queries_total{resolve_key}` naik 1:1 per request; tidak pernah `429`.
-- *Fail-closed/fail-open*: PostgreSQL down → `503` (kedua mode); Redis down (hybrid) → kid ter-cache tetap `200` (fallback PostgreSQL), `/healthz` melaporkan `redis:false`.
+**Eksekusi versi 1** (`multi_run_experiment.py`): dijalankan 07/07/2026 20:53–20:57, 10 run, seluruhnya tanpa crash (`anomali=NONE`).
+**Eksekusi versi 2, revisi** (`multi_run_experiment_v2.py`): dijalankan 12/07/2026 01:32–01:35, 10 run, seluruhnya tanpa crash.
 
-Catatan lingkungan: PostgreSQL container di-expose ke host pada port 5433 (hindari konflik port lokal); migrasi diverifikasi via `psql` langsung (Sqitch CLI di mesin dev tidak memiliki driver `DBD::Pg`).
+**Iterasi desain penting**: versi 1 ditulis sebagai penyederhanaan dari notebook eksplorasi untuk mempercepat replikasi 5-seed, namun proses penyederhanaan ini secara tidak sengaja menghilangkan tahap preprocessing linguistik. Solusi: versi 2 menambahkan kembali fungsi `preprocess()` yang identik dengan notebook, dilengkapi mekanisme caching hasil preprocessing (`gojek_labeled_clean.csv`) agar replikasi berikutnya tidak perlu menjalankan ulang stemming yang memakan waktu 5–15 menit.
 
-Detail: [../09-docs/tahap-2-implementasi-gateway.md](../09-docs/tahap-2-implementasi-gateway.md), kode: [../05-kode/gateway/](../05-kode/gateway/).
+Detail: [Jadwal_Log_Pelaksanaan_Penelitian.md](Jadwal_Log_Pelaksanaan_Penelitian.md), kode: `multi_run_experiment.py`, `multi_run_experiment_v2.py`.
 
-### 3.3 Tahap 3 — Pengujian Beban k6
+### 3.3 WS-11 — Data Validation & Integrity
 
-**Status: Selesai — matrix 400 run (40 replikasi) telah dijalankan.** Disusun 3 skrip k6 (`legitimate.js`, `attack.js` dengan `KID_STRATEGY=unique|pool`, `mixed.js` yang menjalankan keduanya secara paralel dengan Trend custom per skenario), runner `run-scenario.sh` (restart gateway sesuai mode, health check, snapshot `/metrics` sebelum/sesudah, jalankan k6, monitor resource), `run-matrix.sh` (loop replikasi × kombinasi mode/varian), dan `monitor-resources.sh` (`docker stats` polling ~3s).
+**Status: Selesai — anomali ditemukan dan diperbaiki.** Validasi data dilakukan pada 4 pilar: accuracy (nilai dalam range [0,100]), consistency (format seragam antar-log), completeness (10/10 run tercatat), dan validity (kesesuaian dengan desain eksperimen).
 
-**Iterasi desain penting**: percobaan awal menggunakan `k6 run --out json=...` menghasilkan **139 MB** data mentah hanya untuk 15 detik pengujian — tidak layak untuk matrix penuh. Solusi: ganti ke `--summary-export` (ringkasan agregat) + snapshot `/metrics` gateway before/after (delta = ground truth jumlah query/cache/rate-limit) + Trend custom di `mixed.js`. Hasil: total ukuran matrix awal 50 run **~1,7 MB**.
+Pada pilar validity, ditemukan anomali: perbandingan silang antara hasil eksplorasi notebook (single-run, dengan preprocessing lengkap, seed=42) dan hasil multi-run versi 1 pada seed yang sama menunjukkan selisih accuracy ~1 poin dan selisih precision ~4,6 poin yang tidak semestinya terjadi jika kedua pipeline identik. Investigasi kode mengonfirmasi `multi_run_experiment.py` versi 1 tidak menjalankan tahap preprocessing linguistik. Ditemukan pula outlier statistik pada NB run seed=789 (accuracy 88,08%, di luar batas IQR bawah pada data versi 1).
 
-**Matrix awal (5 replikasi, diarsipkan)**: `CACHE_MODE` ∈ {none, hybrid} × traffic_variant ∈ {legitimate, attack-unique, attack-pool, mixed-unique, mixed-pool} × replikasi 1–5 = **50 run**, dijalankan ~54 menit (2026-06-12T18:05Z–18:59Z), seluruhnya `k6_exit_code = 0`. Dataset ini kemudian diarsipkan ke `04-data/_archive-50run-20260612/`.
+Detail: worksheet WS-11 (Data Validation & Integrity).
 
-**Matrix final (40 replikasi)**: untuk memperbesar sampel statistik, replikasi diperluas menjadi 40 per kombinasi — `CACHE_MODE` ∈ {none, hybrid} × traffic_variant (5 varian) × replikasi 1–40 = **400 run**, dijalankan via `run-matrix.sh` pada 2026-06-15 (selesai `2026-06-15T09:53:24Z`), seluruhnya `k6_exit_code = 0`. Sebelum eksekusi, token JWT legitimate yang sebelumnya *expired* diregenerasi dan cache Redis di-*flush* agar matrix dimulai dari kondisi cache dingin. Dataset 400 run inilah yang menjadi sumber statistik final pada §4.
+### 3.4 WS-12 — Result Presentation & Visualization
 
-Output per run: `k6-summary.json`, `gateway-metrics-{before,after}.txt`, `resources.csv`, `meta.json`, disimpan di `04-data/<cache_mode>__<traffic_variant>__rep<N>__<timestamp>/` (tidak disertakan dalam repository git — lihat `.gitignore` — namun seluruh skrip pembangkit tersedia untuk reproduksi).
+**Status: Selesai.** Hasil disajikan dalam tabel mean±std (n=5 per algoritma) dan rencana visualisasi (bar chart dengan error bar, dot plot sebaran 5-run, scatter waktu latih skala log). Bias check dilakukan untuk memastikan tidak ada truncated-axis bias — krusial karena gap performa versi final (0,45 poin) jauh lebih kecil dari versi awal (1,71 poin), sehingga lebih rentan disalahartikan tanpa error bar yang jelas.
 
-Detail: [../09-docs/tahap-3-pengujian-k6.md](../09-docs/tahap-3-pengujian-k6.md), kode: [../05-kode/k6/](../05-kode/k6/).
+Detail: worksheet WS-12 (Result Presentation & Visualization).
 
-### 3.4 Tahap 4 — Ekstraksi Data & Visualisasi
+### 3.5 WS-13 — Data Preprocessing
 
-**Status: Selesai.** Dibangun *pipeline* analisis Python (`05-kode/analysis/`, dijalankan via `python run_all.py`) terdiri dari:
+**Status: Selesai — RESOLVED.** Mendokumentasikan pipeline preprocessing secara lengkap: case folding, cleansing (hapus simbol/angka/URL), stopword removal (NLTK, Bahasa Indonesia, 757 kata), dan stemming (Sastrawi). Setelah anomali pada WS-11 dikonfirmasi, `multi_run_experiment_v2.py` ditulis ulang agar pipeline-nya identik dengan notebook eksplorasi awal dan sesuai proposal bagian E.2.
 
-| Modul | Fungsi |
-|---|---|
-| `common.py` | Helper baca artefak `04-data/<run-id>/` (k6 summary, meta, `/metrics`, `resources.csv`) |
-| `load_runs.py` | Bangun DataFrame tidy: ringkasan k6 per run, ringkasan resource, delta `/metrics` gateway |
-| `descriptive_stats.py` | Statistik deskriptif latensi/RPS per (cache_mode, traffic_variant) + breakdown legit vs attack pada mixed |
-| `compute_dperf.py` | Hitung $D_{perf}$ |
-| `resource_stats.py` | CPU%/memori per (cache_mode, traffic_variant, container) |
-| `gateway_metrics.py` | Metrik efektivitas mitigasi dari delta `jwksgw_*` |
-| `charts.py` | 5 figure PNG |
+Detail: [arsitektur-dan-skema.md](arsitektur-dan-skema.md), worksheet WS-13 (Data Preprocessing).
 
-Output: 6 tabel CSV ([../06-output/tables/](../06-output/tables/)) dan 5 figure PNG ([../06-output/figures/](../06-output/figures/)). Detail & hasil: [../09-docs/tahap-4-analisis-data.md](../09-docs/tahap-4-analisis-data.md).
+### 3.6 WS-14 — Analysis, Interpretation & Failure Analysis
 
-### 3.5 Tahap 5 — Draf Naskah Jurnal
+**Status: Selesai — dengan pelaporan ganda uji statistik.** Data final (versi 2) dianalisis: uji normalitas Shapiro-Wilk (NB normal, W=0,875, p=0,286; RF tidak normal, W=0,686, p=0,0069, akibat satu run dengan accuracy relatif tinggi pada seed 2024), diikuti pelaporan ganda paired t-test (t(4)=5,70, p=0,0047, Cohen's d=2,55 — signifikan) dan Wilcoxon signed-rank test (p=0,0625 — marginal, tidak signifikan pada α=0,05 konvensional, meski merupakan p-value minimum yang bisa dicapai pada n=5).
 
-**Status: Sedang berjalan.** Draf konten per bagian naskah (Abstrak, Pendahuluan, Tinjauan Pustaka, Metodologi, Hasil & Analisis, Kesimpulan, Daftar Pustaka) telah disusun di [../07-manuskrip/](../07-manuskrip/), siap dipindahkan ke template jurnal tujuan. Bagian yang masih perlu dilengkapi: Tinjauan Pustaka (*related work*, lihat [../02-literatur/matriks-literatur.md](../02-literatur/matriks-literatur.md)), verifikasi nomor CVE, dan keputusan bahasa final naskah.
+Detail: worksheet WS-14 (Analysis, Interpretation & Failure Analysis).
+
+### 3.7 WS-15 — Scientific Writing
+
+**Status: Selesai.** Menyusun outline naskah IMRAD, consistency matrix (memverifikasi RQ, variabel, dan klaim konsisten di seluruh bagian Introduction–Conclusion — termasuk memastikan Conclusion tidak sepihak mengutip hanya salah satu hasil uji statistik), dan writing quality check (memperbaiki klaim "signifikan" tanpa p-value menjadi presisi dengan nama uji dan nilai p eksplisit).
+
+Detail: [naskah-jurnal.md](naskah-jurnal.md).
 
 ---
 
 ## 4. Hasil Penelitian
 
-Ringkasan hasil (detail lengkap & interpretasi: [../07-manuskrip/05-hasil-analisis.md](../07-manuskrip/05-hasil-analisis.md) dan [../09-docs/tahap-4-analisis-data.md](../09-docs/tahap-4-analisis-data.md)).
+Ringkasan hasil (detail lengkap & interpretasi: [naskah-jurnal.md](naskah-jurnal.md) §4 Hasil dan Analisis).
 
-### 4.1 D_perf — Dampak Mitigasi terhadap Traffic Legitimate
+### 4.1 Statistik Deskriptif (Data Final, Versi 2)
 
-| Kondisi | Metrik | T_none (ms) | T_hybrid (ms) | $D_{perf}$ |
-|---|---|---|---|---|
-| `legitimate` (tanpa serangan) | avg | 0,6905 | 0,6301 | -8,8% |
-| `legitimate` (tanpa serangan) | p95 | 1,0384 | 1,0063 | -3,1% |
-| Traffic legit dalam `mixed-unique` | avg | 10,4183 | 0,7721 | -92,6% |
-| Traffic legit dalam `mixed-unique` | p95 | 19,4384 | 1,3839 | -92,9% |
-| Traffic legit dalam `mixed-pool` | avg | 10,7468 | 5,7595 | -46,4% |
-| Traffic legit dalam `mixed-pool` | p95 | 20,5135 | 12,4138 | -39,5% |
+| Skenario | Accuracy (%) | Precision (%) | Recall (%) | F1-Score (%) | Waktu Latih (s) |
+|---|---|---|---|---|---|
+| Random Forest | 89,59 ± 0,18 | 89,64 ± 0,18 | 89,59 ± 0,18 | 89,58 ± 0,18 | 28,52 ± 0,60 |
+| Naïve Bayes | 89,14 ± 0,19 | 89,54 ± 0,16 | 89,14 ± 0,19 | 89,11 ± 0,20 | 0,32 ± 0,03 |
 
-### 4.2 Penurunan Beban Query PostgreSQL
+### 4.2 Uji Hipotesis
 
-| traffic_variant | db_queries `none` (mean) | db_queries `hybrid` (mean) | Reduction |
+| Uji | Statistik | p-value | Kesimpulan |
 |---|---|---|---|
-| legitimate | 300.114,7 | 10,0 | 99,997% |
-| attack-unique | 907.845,5 | 61.894,1 | 93,182% |
-| attack-pool | 879.271,7 | 73,1 | 99,992% |
-| mixed-unique | 880.678,3 | 57.957,1 | 93,419% |
-| mixed-pool | 849.226,3 | 74,6 | 99,991% |
+| Shapiro-Wilk (NB accuracy) | W=0,875 | 0,286 | Normal |
+| Shapiro-Wilk (RF accuracy) | W=0,686 | 0,0069 | Tidak normal (outlier seed 2024) |
+| Paired t-test (accuracy) | t(4)=5,70 | 0,0047 | Signifikan (d=2,55) |
+| Wilcoxon signed-rank (accuracy) | W=0,0 | 0,0625 | Marginal, tidak signifikan pada α=0,05 |
+| Paired t-test (F1-score) | t(4)=6,00 | 0,0039 | Signifikan (d=2,68) |
 
-### 4.3 Penggunaan CPU PostgreSQL
+### 4.3 Perbandingan Gap Performa: Sebelum vs Sesudah Preprocessing Diperbaiki
 
-| traffic_variant | CPU postgres `none` (mean%) | CPU postgres `hybrid` (mean%) |
-|---|---|---|
-| legitimate | 64,1 | 2,2 |
-| attack-unique | 158,3 | 124,4 |
-| attack-pool | 153,9 | 2,2 |
-| mixed-unique | 152,5 | 103,0 |
-| mixed-pool | 149,9 | 2,2 |
+| Versi | Preprocessing | Accuracy RF | Accuracy NB | Gap | Signifikansi |
+|---|---|---|---|---|---|
+| v1 (superseded) | Tidak ada | 90,13% | 88,42% | 1,71 poin | p=0,0002 (t-test), sangat signifikan |
+| v2 (final) | Lengkap | 89,59% | 89,14% | 0,45 poin | p=0,0047 (t-test) / p=0,0625 (Wilcoxon) |
 
-### 4.4 Figure
+### 4.4 Interpretasi Singkat
 
-| File | Isi |
-|---|---|
-| [`fig_latency_p95.png`](../06-output/figures/fig_latency_p95.png) | Latensi p95 per traffic_variant: none vs hybrid |
-| [`fig_dperf.png`](../06-output/figures/fig_dperf.png) | $D_{perf}$ (avg & p95) untuk 3 perbandingan |
-| [`fig_db_queries_reduction.png`](../06-output/figures/fig_db_queries_reduction.png) | Total query PostgreSQL per run (log scale) |
-| [`fig_postgres_cpu.png`](../06-output/figures/fig_postgres_cpu.png) | CPU% rata-rata container PostgreSQL |
-| [`fig_resource_timeseries.png`](../06-output/figures/fig_resource_timeseries.png) | Time-series CPU PostgreSQL selama `mixed-pool` rep1 |
-
-### 4.5 Interpretasi Singkat
-
-1. Mitigasi tidak menambah overhead pada kondisi normal — bahkan sedikit lebih cepat (positive cache hit ratio ≈ 99,997%).
-2. Mitigasi melindungi pengalaman pengguna sah secara signifikan saat sistem diserang (D_perf p95 hingga -92,9%).
-3. Reduction beban query PostgreSQL 93,2%–99,997% dan CPU PostgreSQL turun ke <2,5% pada skenario `legitimate`, `attack-pool`, `mixed-pool`.
-4. **Trade-off**: pada `*-unique`, rate-limiting berbasis UPSERT per `client_ip` menjadi titik kontensi *lock* — CPU PostgreSQL hybrid tetap 103–124% dan latensi traffic penyerang pada hybrid lebih buruk dibanding `none`. Traffic legitimate tetap terlindungi.
+1. Random Forest unggul konsisten arahnya di seluruh 5 seed tanpa kecuali — bukan kebetulan satu run.
+2. Signifikansi statistik bergantung pada uji: t-test menyatakan signifikan, Wilcoxon (lebih tepat karena RF non-normal) menyatakan marginal — kedua hasil dilaporkan secara transparan, bukan memilih salah satu yang "menguntungkan".
+3. Besaran praktis gap (0,45 poin) berada **di bawah ambang bermakna praktis (≥5%)** yang ditetapkan pada proposal — keunggulan RF nyata tapi kecil.
+4. **Temuan tambahan penting**: preprocessing linguistik mengecilkan gap performa NB-RF secara substansial (1,71→0,45 poin) — Naïve Bayes lebih diuntungkan oleh representasi teks bersih dibanding Random Forest yang sudah relatif robust terhadap noise pada representasi mentah.
 
 ---
 
 ## 5. Kendala dan Catatan Lingkungan
 
-- **Output k6 mentah (`--out json=`) tidak skalabel** (139 MB/15s) — diatasi dengan `--summary-export` + snapshot `/metrics` + Trend custom (lihat §3.3).
-- **Direktori run data kadang terkunci sementara** (`Device or resource busy`) pada Windows/Docker Desktop setelah `docker run --rm` dengan bind mount — transient, hilang sendiri setelah beberapa saat, tidak memerlukan penanganan kode.
-- **`MSYS_NO_PATHCONV=1`** diperlukan pada `docker run` via Git Bash (Windows) agar path container tidak diterjemahkan ke path Windows oleh MSYS.
-- **Sqitch CLI** di mesin development tidak memiliki driver `DBD::Pg` — migrasi diverifikasi via `psql` langsung; `migrations/` tetap menjadi dokumentasi resmi deploy/revert/verify.
-- **PostgreSQL container** di-expose pada port 5433 (bukan 5432 default) untuk menghindari konflik dengan instance PostgreSQL lokal.
+- **Kelalaian preprocessing pada implementasi awal**: skrip eksperimen multi-run versi 1 (`multi_run_experiment.py`) tidak menyertakan tahap preprocessing linguistik saat ditulis ulang dari notebook menjadi script otomatis, terdeteksi melalui validasi silang (WS-11) — bukan pemeriksaan kode manual, menegaskan pentingnya validasi data sebagai langkah wajib.
+- **Waktu komputasi**: tahap stemming Sastrawi pada seluruh korpus memerlukan estimasi 5–15 menit per eksekusi pertama; dimitigasi dengan mekanisme caching hasil preprocessing (`gojek_labeled_clean.csv`) sehingga replikasi berikutnya jauh lebih cepat.
+- **Disparitas waktu latih**: Random Forest (~28,5 detik/run) jauh lebih lambat dibanding Naïve Bayes (~0,3 detik/run), mencerminkan kompleksitas komputasi ensemble tree.
+- **Lingkungan eksekusi**: Python 3.x, scikit-learn (TF-IDF, MultinomialNB, RandomForestClassifier), NLTK (stopword Bahasa Indonesia), PySastrawi (stemming); dijalankan lokal (VS Code, Windows) untuk skrip multi-run, dan Google Colab untuk eksplorasi notebook awal.
+- **Anomali statistik pada data final**: satu run Random Forest (seed 2024) menghasilkan accuracy relatif tinggi (89,91%) dibanding 4 run RF lain yang sangat rapat (89,48–89,56%), menyebabkan pelanggaran asumsi normalitas Shapiro-Wilk pada grup RF. Investigasi confusion matrix tidak menemukan indikasi bug; run tersebut tetap disertakan dalam analisis sebagai variabilitas alami, bukan dihapus sebagai outlier yang dianggap error.
 
 ---
 
 ## 6. Kesimpulan dan Saran
 
-Ringkasan kesimpulan & saran penelitian lanjutan: lihat [../07-manuskrip/06-kesimpulan.md](../07-manuskrip/06-kesimpulan.md).
+Ringkasan kesimpulan & saran penelitian lanjutan: lihat [naskah-jurnal.md](naskah-jurnal.md) §5 Kesimpulan.
 
-Inti kesimpulan: skema **Redis-PostgreSQL Hybrid Caching** efektif memitigasi JWKS Endpoint Flooding — tanpa overhead pada kondisi normal, melindungi traffic legitimate secara signifikan saat diserang, dan memangkas beban PostgreSQL 93–99,997% pada mayoritas skenario — dengan satu trade-off teridentifikasi pada desain rate-limiting berbasis baris counter tunggal per klien saat pola serangan menggunakan `kid` yang selalu baru.
+Inti kesimpulan: Random Forest menghasilkan performa klasifikasi sentimen yang secara arah konsisten lebih baik dibandingkan Naïve Bayes pada ulasan aplikasi Gojek berbahasa Indonesia — unggul di seluruh 5 replikasi tanpa kecuali — dengan selisih accuracy rata-rata 0,45 poin. H₁ diterima dengan kualifikasi: signifikansi statistik bergantung pada uji yang dipilih (signifikan menurut t-test, marginal menurut Wilcoxon yang lebih tepat), dan besaran praktisnya kecil. Satu temuan tambahan penting teridentifikasi: gap performa NB-RF sensitif terhadap keputusan preprocessing linguistik, sehingga klaim keunggulan algoritma pada klasifikasi teks Bahasa Indonesia perlu selalu dikontekstualisasikan terhadap pipeline yang digunakan.
+
+**Saran penelitian lanjutan**: penambahan jumlah replikasi (10–20 run) untuk meningkatkan power statistik terutama pada uji non-parametrik, ekspansi ke algoritma lain (SVM, XGBoost) dan metode embedding kontekstual (Word2Vec, IndoBERT), serta replikasi lintas aplikasi (Grab, Shopee) untuk menguji generalisasi temuan sensitivitas preprocessing pada domain super-app lainnya.
 
 ---
 
 ## 7. Lampiran — Peta Artefak Penelitian
 
-| Folder | Isi | Status |
+| Dokumen/Folder | Isi | Status |
 |---|---|---|
-| [01-proposal/](../01-proposal/) | Proposal penelitian | Selesai |
-| [02-literatur/](../02-literatur/) | Matriks literatur (kerangka, perlu dilengkapi) | Kerangka tersedia |
-| [03-teori/](../03-teori/) | Diagram arsitektur & skema (Tahap 1) | Selesai |
-| [04-data/](../04-data/) | Data mentah 400 run/40 replikasi (tidak di-commit, lihat `.gitignore`; matrix awal 50 run/5 replikasi diarsipkan di `_archive-50run-20260612/`) | Tersedia lokal |
-| [05-kode/gateway/](../05-kode/gateway/) | Source code API Gateway (Go) | Selesai |
-| [05-kode/k6/](../05-kode/k6/) | Skrip pengujian beban k6 | Selesai |
-| [05-kode/analysis/](../05-kode/analysis/) | Pipeline analisis Python | Selesai |
-| [06-output/](../06-output/) | Tabel & figure hasil analisis | Selesai |
-| [07-manuskrip/](../07-manuskrip/) | Draf naskah jurnal (Tahap 5) | Sedang berjalan |
-| [08-laporan/](../08-laporan/) | Laporan penelitian (dokumen ini) | Selesai |
-| [09-docs/](../09-docs/) | Dokumen rencana & status tiap tahap | Selesai |
+| `proposal-penelitian.md` | Proposal penelitian lengkap (A–H) | Selesai |
+| `matriks-literatur.md`, `daftar-pustaka.bib` | Matriks literatur (6 studi pembanding + 3 pendukung) dan bibliografi BibTeX (9 entri) | Selesai |
+| `arsitektur-dan-skema.md` | Landasan teori (NB, RF, TF-IDF), diagram arsitektur pipeline, skema data | Selesai |
+| WS-09 s.d. WS-15 (7 worksheet) | Desain eksperimen, execution plan, validasi data, presentasi hasil, preprocessing, analisis statistik, scientific writing | Selesai |
+| `sentimen_gojek.ipynb` | Notebook eksplorasi single-run (seed=42, pipeline lengkap) | Selesai |
+| `multi_run_experiment.py` (v1) | Skrip multi-run awal — superseded, disimpan sebagai catatan sejarah & robustness check | Selesai (superseded) |
+| `multi_run_experiment_v2.py` (v2) | Skrip multi-run final — dengan preprocessing lengkap | Selesai (final) |
+| Data v1: `semua_hasil.csv`, `rekap_statistik.csv`, 10 log JSON | Hasil eksperimen versi awal (tanpa preprocessing) | Tersedia |
+| Data v2: `semua_hasil_v2.csv`, `rekap_statistik_v2.csv`, 10 log JSON | Hasil eksperimen versi final (dengan preprocessing) | Tersedia |
+| `naskah-jurnal.md` | Naskah jurnal konsolidasi (Judul–Daftar Pustaka) | Selesai |
+| `Jadwal_Log_Pelaksanaan_Penelitian.md` | Log kronologis pelaksanaan WS-09 s.d. WS-15 | Selesai |
+| `laporan-penelitian.md` | Laporan penelitian (dokumen ini) | Selesai |
 
 **Cara reproduksi penuh:**
 
 ```bash
-# Tahap 2: jalankan gateway (lihat 05-kode/gateway/README.md)
-cd 05-kode/gateway && docker compose up -d
+# Eksplorasi awal (opsional, referensi pipeline)
+# jalankan sentimen_gojek.ipynb di Google Colab
 
-# Tahap 3: jalankan matrix 400 run / 40 replikasi (lihat 05-kode/k6/README.md)
-cd 05-kode/k6 && ./run-matrix.sh
+# Eksperimen multi-run final (v2, dengan preprocessing lengkap)
+cd RTI
+python multi_run_experiment_v2.py
 
-# Tahap 4: jalankan pipeline analisis
-cd 05-kode/analysis && python run_all.py
+# Bandingkan dengan versi awal (v1, tanpa preprocessing) — opsional, untuk analisis sensitivitas
+python multi_run_experiment.py
 ```
