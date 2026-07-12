@@ -1,32 +1,30 @@
 # Jadwal & Log Pelaksanaan Penelitian
 
-Catatan kronologis pelaksanaan tiap tahap (sumber: riwayat commit git & dokumen `09-docs/tahap-N-*.md`). Tanggal mengikuti `git log`.
+Catatan kronologis pelaksanaan tiap tahap (sumber: riwayat update dokumen `worksheets/ws-*.md` dan eksekusi skrip). Tanggal mengikuti log riil eksperimen.
 
 ## Log Pelaksanaan
 
 | Tanggal | Tahap | Aktivitas | Referensi |
 |---|---|---|---|
-| 2026-06-12 s.d. 2026-06-13 (commit 01:05) | Tahap 1 & 2 | Perancangan arsitektur/skema database; implementasi API Gateway Go (Echo) — clean architecture, migrasi Sqitch, seed script, docker-compose, verifikasi end-to-end (`CACHE_MODE=none`/`hybrid`, fail-closed/fail-open) | [09-docs/tahap-1-arsitektur-dan-skema-database.md](../09-docs/tahap-1-arsitektur-dan-skema-database.md), [09-docs/tahap-2-implementasi-gateway.md](../09-docs/tahap-2-implementasi-gateway.md) |
-| 2026-06-13 01:05 | Tahap 3 | Implementasi skrip k6 (`legitimate.js`, `attack.js`, `mixed.js`), runner & monitor resource | [09-docs/tahap-3-pengujian-k6.md](../09-docs/tahap-3-pengujian-k6.md) |
-| 2026-06-12 18:05–18:59 (≈54 menit) | Tahap 3 | Eksekusi matrix penuh 50 run (2 `CACHE_MODE` × 5 `traffic_variant` × 5 replikasi), seluruhnya `k6_exit_code = 0` | commit "Mark Tahap 3 complete after running full 50-run k6 matrix" (2026-06-13 02:00) |
-| 2026-06-13 07:41 | Tahap 4 | Pipeline analisis Python (`run_all.py`), 6 tabel CSV + 5 figure PNG, dokumen Tahap 4 diperbarui ke status Selesai | [09-docs/tahap-4-analisis-data.md](../09-docs/tahap-4-analisis-data.md), [06-output/](../06-output/) |
-| 2026-06-13 | Tahap 5 | Draf konten naskah (8 bagian) di `07-manuskrip/`; pelengkapan `01-proposal/`, `02-literatur/`, `03-teori/`, dan laporan penelitian `08-laporan/` | [09-docs/tahap-5-draf-paper.md](../09-docs/tahap-5-draf-paper.md), [08-laporan/laporan-penelitian.md](../08-laporan/laporan-penelitian.md) |
-| 2026-06-13 | Tahap 5 | Verifikasi CVE-2026-48524 (terkonfirmasi via GHSA-fhv5-28vv-h8m8); pencarian 18 referensi literatur nyata & penyusunan bibliografi Mendeley; pelengkapan §2.4 *Related Work* di `03-tinjauan-pustaka.md` dan `07-daftar-pustaka.md`; penyusunan naskah konsolidasi `naskah-jurnal.md`/`.docx` | [02-literatur/matriks-literatur.md](../02-literatur/matriks-literatur.md), [02-literatur/daftar-pustaka.bib](../02-literatur/daftar-pustaka.bib), [07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md) |
-| 2026-06-15 | Tahap 3 & 4 | Perluasan replikasi dari 5 menjadi 40 per kombinasi: regenerasi token JWT legitimate (sebelumnya *expired*), flush cache Redis, eksekusi matrix penuh 400 run (2 `CACHE_MODE` × 5 `traffic_variant` × 40 replikasi) via `run-matrix.sh`, seluruhnya `k6_exit_code = 0` (selesai 2026-06-15T09:53:24Z); dataset 50-run lama diarsipkan ke `04-data/_archive-50run-20260612/`; pipeline analisis (`run_all.py`) dijalankan ulang atas dataset baru; seluruh statistik di `naskah-jurnal.md`/`.docx`, `00-outline.md`, dan dokumen `09-docs/`/`08-laporan/`/`01-proposal/` diperbarui ke n=40 | [09-docs/tahap-3-pengujian-k6.md](../09-docs/tahap-3-pengujian-k6.md), [09-docs/tahap-4-analisis-data.md](../09-docs/tahap-4-analisis-data.md), [04-data/matrix-40run.log](../04-data/matrix-40run.log) |
+| 2026-07-11 | Tahap 1 & 2 | Eksplorasi awal dengan notebook (single-run) dan perancangan eksperimen 5-run menggunakan skrip `multi_run_experiment.py` (v1) tanpa preprocessing linguistik. | [worksheets/ws-10-execution-data.md](../../worksheets/ws-10-execution-data.md) |
+| 2026-07-11 | Tahap 3 | Eksekusi matrix 5-run awal (v1) untuk Naive Bayes dan Random Forest; anomali gap performa (1,71 poin) terdeteksi. | [worksheets/ws-11-data-validation.md](../../worksheets/ws-11-data-validation.md) |
+| 2026-07-12 | Tahap 4 | Validasi data mengonfirmasi adanya under-processing pada v1 (tahap linguistik terlewat). Skrip direvisi menjadi `multi_run_experiment_v2.py` dengan pipeline preprocessing lengkap (case folding, cleansing, stopword NLTK, stemming Sastrawi). | [worksheets/ws-13-preprocessing.md](../../worksheets/ws-13-preprocessing.md) |
+| 2026-07-12 (01:32–01:35) | Tahap 3 | Eksekusi ulang matrix penuh 5-run menggunakan skrip v2. Seluruh 10 run selesai tanpa error dengan data tersimpan di log JSON v2. Gap performa menyusut menjadi 0,45 poin. | [worksheets/ws-10-execution-data.md](../../worksheets/ws-10-execution-data.md) |
+| 2026-07-12 | Tahap 4 & 5 | Analisis hasil eksperimen v2, uji hipotesis (paired t-test & Wilcoxon karena outlier di RF), dan evaluasi limitasi (n=5). Laporan visualisasi, interpretasi, dan struktur paper ilmiah diperbarui dengan data v2 final. | [worksheets/ws-14-analysis-interpretation.md](../../worksheets/ws-14-analysis-interpretation.md), [worksheets/ws-15-scientific-writing.md](../../worksheets/ws-15-scientific-writing.md), [worksheets/ws-12-result-presentation.md](../../worksheets/ws-12-result-presentation.md) |
 
 ## Status Ringkas
 
-- **Tahap 1–4**: Selesai (dataset final: matrix 400 run / 40 replikasi per kombinasi, 2026-06-15).
-- **Tahap 5**: Konten naskah selesai dengan statistik n=40 (termasuk tinjauan pustaka & verifikasi CVE-2026-48524); menyisakan keputusan bahasa final dan pemindahan ke template jurnal tujuan (dilakukan oleh peneliti).
+- **Tahap 1–4**: Selesai. Data final menggunakan eksekusi v2 (dengan preprocessing) sebanyak 5-run per algoritma (selesai dieksekusi 2026-07-12). Hasil awal (v1) dipertahankan sebagai analisis sensitivitas metodologis.
+- **Tahap 5**: Laporan interpretasi (WS-14) dan checklist paper ilmiah (WS-15) selesai (target: SINTA 3+ / Skripsi) dengan narasi yang menyoroti dampak metodologis preprocessing.
 
 ## Item Tindak Lanjut (Checklist Sebelum Submission)
 
-- [x] Lengkapi matriks literatur dengan paper *related work* nyata ([02-literatur/matriks-literatur.md](../02-literatur/matriks-literatur.md)) — 18 referensi terverifikasi
-- [x] Verifikasi CVE-2026-48524 terhadap basis data NVD/MITRE — terkonfirmasi via GHSA-fhv5-28vv-h8m8 (PyJWT, CVSS 3.7)
-- [ ] Tetapkan bahasa final naskah (Indonesia/Inggris) sesuai jurnal tujuan
-- [ ] Pindahkan konten [07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md)/`.docx` ke template jurnal tujuan
-- [ ] Finalisasi penempatan figure/tabel sesuai gaya jurnal
-- [ ] Review akhir seluruh klaim numerik agar konsisten antar dokumen (lihat daftar pada [07-manuskrip/00-outline.md](../07-manuskrip/00-outline.md))
+- [x] Selesaikan validasi dan perbaikan script otomatisasi menjadi `multi_run_experiment_v2.py`
+- [x] Lakukan re-run eksperimen 5 seed untuk v2 dan perbarui dokumen WS-10 hingga WS-14
+- [x] Buat outline dan matriks konsistensi di WS-15 (Scientific Writing) berdasarkan hasil v2
+- [ ] Pindahkan draf kerangka paper dari worksheet ke dalam template jurnal SINTA 3+ atau format laporan skripsi
+- [ ] Finalisasi penyusunan grafik hasil evaluasi ke naskah skripsi
+- [ ] (Opsional) Tambahkan replikasi seed (misal n=10 atau n=20) sebagai rekomendasi future work jika diperlukan untuk menutupi limitasi power uji statistik Wilcoxon (karena p-minimum 0,0625 pada n=5)
 
 ## Korespondensi
 
