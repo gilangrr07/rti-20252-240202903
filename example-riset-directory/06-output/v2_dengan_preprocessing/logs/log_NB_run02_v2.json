@@ -1,0 +1,24 @@
+{
+  "run_id": "run-NB-02-v2",
+  "timestamp": "2026-07-12T01:32:41.781084",
+  "skenario": "NB",
+  "seed": 123,
+  "n_sample": 100000,
+  "test_size": 0.2,
+  "tfidf_max_features": 5000,
+  "preprocessing": "case_folding+cleansing+stopword_removal+sastrawi_stemming",
+  "metric_average": "weighted",
+  "accuracy": 89.3,
+  "precision": 89.64,
+  "recall": 89.3,
+  "f1_score": 89.27,
+  "waktu_latih_detik": 0.311,
+  "confusion_matrix": {
+    "TN": 9398,
+    "FP": 602,
+    "FN": 1539,
+    "TP": 8461
+  },
+  "anomali": "NONE",
+  "catatan": ""
+}

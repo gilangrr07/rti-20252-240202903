@@ -1,0 +1,22 @@
+{
+  "run_id": "run-NB-01",
+  "timestamp": "2026-07-07T20:54:28.567715",
+  "skenario": "NB",
+  "seed": 42,
+  "n_sample": 100000,
+  "test_size": 0.2,
+  "tfidf_max_features": 5000,
+  "accuracy": 88.59,
+  "precision": 89.23,
+  "recall": 88.59,
+  "f1_score": 88.54,
+  "waktu_latih_detik": 0.1652,
+  "confusion_matrix": {
+    "TN": 9499,
+    "FP": 501,
+    "FN": 1782,
+    "TP": 8218
+  },
+  "anomali": "NONE",
+  "catatan": ""
+}

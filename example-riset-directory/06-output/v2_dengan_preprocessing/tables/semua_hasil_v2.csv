@@ -1,0 +1,11 @@
+run_id,timestamp,skenario,seed,n_sample,test_size,tfidf_max_features,preprocessing,metric_average,accuracy,precision,recall,f1_score,waktu_latih_detik,confusion_matrix,anomali,catatan
+run-NB-01-v2,2026-07-12T01:32:04.558394,NB,42,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.2,89.61,89.2,89.18,0.3694,"{'TN': 9423, 'FP': 577, 'FN': 1582, 'TP': 8418}",NONE,
+run-RF-01-v2,2026-07-12T01:32:37.756352,RF,42,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.49,89.54,89.49,89.49,28.5167,"{'TN': 9132, 'FP': 868, 'FN': 1234, 'TP': 8766}",NONE,
+run-NB-02-v2,2026-07-12T01:32:41.781084,NB,123,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.3,89.64,89.3,89.27,0.311,"{'TN': 9398, 'FP': 602, 'FN': 1539, 'TP': 8461}",NONE,
+run-RF-02-v2,2026-07-12T01:33:14.328321,RF,123,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.56,89.62,89.56,89.56,28.6779,"{'TN': 9139, 'FP': 861, 'FN': 1226, 'TP': 8774}",NONE,
+run-NB-03-v2,2026-07-12T01:33:18.397379,NB,456,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,88.84,89.27,88.84,88.81,0.2985,"{'TN': 9410, 'FP': 590, 'FN': 1642, 'TP': 8358}",NONE,
+run-RF-03-v2,2026-07-12T01:33:50.619267,RF,456,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.48,89.53,89.48,89.48,28.1875,"{'TN': 9127, 'FP': 873, 'FN': 1231, 'TP': 8769}",NONE,
+run-NB-04-v2,2026-07-12T01:33:54.322891,NB,789,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.06,89.49,89.06,89.03,0.3084,"{'TN': 9427, 'FP': 573, 'FN': 1615, 'TP': 8385}",NONE,
+run-RF-04-v2,2026-07-12T01:34:26.286529,RF,789,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.5,89.56,89.5,89.49,27.8038,"{'TN': 9151, 'FP': 849, 'FN': 1252, 'TP': 8748}",NONE,
+run-NB-05-v2,2026-07-12T01:34:30.275359,NB,2024,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.3,89.67,89.3,89.27,0.3236,"{'TN': 9413, 'FP': 587, 'FN': 1554, 'TP': 8446}",NONE,
+run-RF-05-v2,2026-07-12T01:35:03.394213,RF,2024,100000,0.2,5000,case_folding+cleansing+stopword_removal+sastrawi_stemming,weighted,89.91,89.96,89.91,89.9,29.4025,"{'TN': 9169, 'FP': 831, 'FN': 1188, 'TP': 8812}",NONE,

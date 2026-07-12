@@ -1,0 +1,3 @@
+Algoritma,Accuracy,Precision,Recall,F1-Score,Waktu Latih
+Naïve Bayes,89.53%,93.83%,84.17%,88.74%,0.13s
+Random Forest,89.92%,91.20%,87.90%,89.52%,152.46s

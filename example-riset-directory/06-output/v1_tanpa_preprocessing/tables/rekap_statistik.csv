@@ -1,0 +1,3 @@
+algoritma,n_runs,accuracy_mean,accuracy_std,precision_mean,precision_std,recall_mean,recall_std,f1_score_mean,f1_score_std,waktu_latih_detik_mean,waktu_latih_detik_std
+NB,5,88.42,0.2,89.02,0.23,88.42,0.2,88.37,0.2,0.21,0.05
+RF,5,90.13,0.19,90.21,0.18,90.13,0.19,90.12,0.19,25.27,2.2

@@ -1,0 +1,22 @@
+{
+  "run_id": "run-RF-03",
+  "timestamp": "2026-07-07T20:55:57.425762",
+  "skenario": "RF",
+  "seed": 456,
+  "n_sample": 100000,
+  "test_size": 0.2,
+  "tfidf_max_features": 5000,
+  "accuracy": 90.28,
+  "precision": 90.34,
+  "recall": 90.28,
+  "f1_score": 90.28,
+  "waktu_latih_detik": 25.0692,
+  "confusion_matrix": {
+    "TN": 9221,
+    "FP": 779,
+    "FN": 1165,
+    "TP": 8835
+  },
+  "anomali": "NONE",
+  "catatan": ""
+}

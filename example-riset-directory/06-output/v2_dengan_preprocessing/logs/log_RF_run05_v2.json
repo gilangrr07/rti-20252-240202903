@@ -1,0 +1,24 @@
+{
+  "run_id": "run-RF-05-v2",
+  "timestamp": "2026-07-12T01:35:03.394213",
+  "skenario": "RF",
+  "seed": 2024,
+  "n_sample": 100000,
+  "test_size": 0.2,
+  "tfidf_max_features": 5000,
+  "preprocessing": "case_folding+cleansing+stopword_removal+sastrawi_stemming",
+  "metric_average": "weighted",
+  "accuracy": 89.91,
+  "precision": 89.96,
+  "recall": 89.91,
+  "f1_score": 89.9,
+  "waktu_latih_detik": 29.4025,
+  "confusion_matrix": {
+    "TN": 9169,
+    "FP": 831,
+    "FN": 1188,
+    "TP": 8812
+  },
+  "anomali": "NONE",
+  "catatan": ""
+}
