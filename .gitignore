@@ -17,3 +17,4 @@ PROJECT-TRACKER.md
 .vscode/
 Thumbs.db
 .DS_Store
+example-riset-directory/04-data/*.csv 
