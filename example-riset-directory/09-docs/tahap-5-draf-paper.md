@@ -1,36 +1,37 @@
 # Tahap 5 — Penulisan Draf Paper Jurnal
 
-**Status:** Konten naskah selesai — naskah konsolidasi tersedia di [../07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md) & [../07-manuskrip/naskah-jurnal.docx](../07-manuskrip/naskah-jurnal.docx), tinjauan pustaka lengkap dengan 18 referensi terverifikasi (BibTeX di [../02-literatur/daftar-pustaka.bib](../02-literatur/daftar-pustaka.bib)). Sisa pekerjaan: keputusan bahasa final & pemindahan ke template jurnal tujuan (lihat "Yang Masih Perlu Dilengkapi").
+**Status:** Konten naskah selesai — naskah konsolidasi tersedia di [../07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md), tinjauan pustaka lengkap dengan 9 referensi (BibTeX di [../02-literatur/daftar-pustaka.bib](../02-literatur/daftar-pustaka.bib)). Sisa pekerjaan: pemindahan ke template jurnal tujuan (lihat "Yang Masih Perlu Dilengkapi").
 **Bergantung pada:** [tahap-4-analisis-data.md](tahap-4-analisis-data.md) — *Selesai*
 
 ---
 
 ## Tujuan
 
-Menyusun draf naskah ilmiah dengan gaya bahasa akademis formal, objektif, dan pasif, sesuai target publikasi Sinta 2 / Scopus Q3-Q4.
+Menyusun draf naskah ilmiah dengan gaya bahasa akademis formal, objektif, dan pasif, sesuai target publikasi jurnal terindeks SINTA 3 atau lebih tinggi.
 
 ## Rencana Deliverable (Struktur Naskah)
 
-| Bagian | File | Status |
+| Bagian | Sumber | Status |
 |---|---|---|
-| Naskah konsolidasi (template jurnal) | [../07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md), [../07-manuskrip/naskah-jurnal.docx](../07-manuskrip/naskah-jurnal.docx) | Selesai — gabungan §1–§5 + Daftar Pustaka |
-| Abstrak | [../07-manuskrip/01-abstrak.md](../07-manuskrip/01-abstrak.md) | Draf selesai (ID & EN) |
-| Pendahuluan (latar belakang, rumusan masalah, tujuan, kontribusi) | [../07-manuskrip/02-pendahuluan.md](../07-manuskrip/02-pendahuluan.md) | Draf selesai |
-| Tinjauan Pustaka (JWT/JWKS, mitigasi, *related work*) | [../07-manuskrip/03-tinjauan-pustaka.md](../07-manuskrip/03-tinjauan-pustaka.md) | Selesai — §2.1–2.3 (RFC + CVE-2026-48524 terverifikasi) dan §2.4 *Related Work* (10 sitasi) |
-| Metodologi (arsitektur, skema, desain eksperimen, metrik) | [../07-manuskrip/04-metodologi.md](../07-manuskrip/04-metodologi.md) | Draf selesai |
-| Hasil & Analisis (statistik deskriptif, $D_{perf}$, reduksi query/CPU) | [../07-manuskrip/05-hasil-analisis.md](../07-manuskrip/05-hasil-analisis.md) | Draf selesai, mengacu ke [../06-output/](../06-output/) |
-| Kesimpulan & Saran Penelitian Lanjutan | [../07-manuskrip/06-kesimpulan.md](../07-manuskrip/06-kesimpulan.md) | Draf selesai |
-| Daftar Pustaka | [../07-manuskrip/07-daftar-pustaka.md](../07-manuskrip/07-daftar-pustaka.md) | Selesai — 18 referensi format IEEE (7 RFC, 1 advisory CVE-2026-48524, 10 related work); BibTeX: [../02-literatur/daftar-pustaka.bib](../02-literatur/daftar-pustaka.bib) |
+| Naskah konsolidasi (template jurnal) | [../07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md) | Selesai — gabungan Judul, Abstrak, §1–§5 + Daftar Pustaka |
+| Abstrak (ID & EN) | Bagian awal `naskah-jurnal.md` | Selesai |
+| Pendahuluan (latar belakang, rumusan masalah, tujuan, kontribusi) | `naskah-jurnal.md` §1 | Selesai — mengacu proposal bagian D |
+| Tinjauan Pustaka (perbandingan NB/RF pada klasifikasi teks Indonesia, *related work*) | `naskah-jurnal.md` §2 | Selesai — 9 sitasi, lihat [../02-literatur/matriks-literatur.md](../02-literatur/matriks-literatur.md) |
+| Metodologi (desain eksperimen, variabel, preprocessing, prosedur) | `naskah-jurnal.md` §3 | Selesai — termasuk catatan metodologis revisi v1→v2 |
+| Hasil & Analisis (statistik deskriptif, uji hipotesis, analisis sensitivitas) | `naskah-jurnal.md` §4 | Selesai, mengacu ke worksheet WS-12/WS-14 |
+| Kesimpulan & Saran Penelitian Lanjutan | `naskah-jurnal.md` §5 | Selesai |
+| Daftar Pustaka | `naskah-jurnal.md` (akhir) | Selesai — 9 referensi format IEEE; BibTeX: [../02-literatur/daftar-pustaka.bib](../02-literatur/daftar-pustaka.bib) |
 
-Outline & peta sumber: [../07-manuskrip/00-outline.md](../07-manuskrip/00-outline.md).
+Outline & consistency matrix: WS-15 (Scientific Writing).
 
 ## Yang Masih Perlu Dilengkapi Sebelum Submit
 
-1. **Keputusan bahasa final naskah** (Indonesia untuk Sinta 2 / Inggris untuk Scopus) — saat ini judul & abstrak dwibahasa, isi §1–§5 Bahasa Indonesia.
-2. **Pemindahan ke template jurnal tujuan** — dilakukan oleh peneliti (di luar scope AI assistant), menggunakan [../07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md)/`.docx` sebagai sumber.
-3. **Penempatan figure/tabel final** sesuai gaya jurnal (caption, penomoran, resolusi) — sumber: [../06-output/figures/](../06-output/figures/) dan [../06-output/tables/](../06-output/tables/).
-4. **Lengkapi metadata penulis & afiliasi** (placeholder pada `naskah-jurnal.md`).
+1. **Pemindahan ke template jurnal tujuan** — dilakukan oleh peneliti (di luar scope AI assistant), menggunakan [../07-manuskrip/naskah-jurnal.md](../07-manuskrip/naskah-jurnal.md) sebagai sumber.
+2. **Konversi ke `.docx`** sesuai gaya jurnal (margin, font, penomoran) — belum dibuat, hanya tersedia versi `.md`.
+3. **Penempatan figure/tabel final** sesuai gaya jurnal (caption, penomoran) — sumber tabel: worksheet WS-12/WS-14; figure (bar chart, dot plot, dsb.) masih berupa rencana, belum digenerate sebagai file PNG (lihat [../06-output/README.md](../06-output/README.md)).
+4. **Lengkapi metadata penulis & afiliasi lengkap** (NIM, program studi, fakultas — sudah ada di proposal, perlu dipindah ke format jurnal).
+5. **Review konsistensi angka lintas dokumen** — pastikan naskah-jurnal.md, laporan-penelitian.md, dan seluruh worksheet WS-10 s.d. WS-14 melaporkan angka yang identik (mean±std, p-value, gap v1/v2).
 
 ## Catatan
 
-Bagian Hasil & Analisis mengacu langsung pada output Tahap 4 ([../06-output/](../06-output/)). Ringkasan naratif tambahan (versi lebih panjang, gaya laporan institusional) tersedia di [../08-laporan/laporan-penelitian.md](../08-laporan/laporan-penelitian.md). Bibliografi (18 referensi terverifikasi) dapat diimpor ke Mendeley dari [../02-literatur/daftar-pustaka.bib](../02-literatur/daftar-pustaka.bib).
+Bagian Hasil & Analisis mengacu langsung pada output Tahap 4. Ringkasan naratif tambahan (versi lebih panjang, gaya laporan institusional) tersedia di `laporan-penelitian.md`. Bibliografi (9 referensi) dapat diimpor ke Mendeley/Zotero dari [../02-literatur/daftar-pustaka.bib](../02-literatur/daftar-pustaka.bib).

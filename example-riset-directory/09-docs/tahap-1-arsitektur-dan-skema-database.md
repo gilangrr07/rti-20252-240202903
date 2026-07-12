@@ -1,4 +1,4 @@
-# Tahap 1 — Perancangan Arsitektur & Skema Database
+# Tahap 1 — Perancangan Desain Eksperimen & Arsitektur Pipeline
 
 **Status:** Selesai
 
@@ -6,94 +6,81 @@
 
 ## 1. Komponen Sistem
 
-1. **API Gateway (Go, Echo)** — menerima request, mem-parsing header JWT untuk mengambil `kid`, lalu meresolusi JWK terkait sebelum verifikasi signature.
-2. **Redis (L1 Cache, murni cache JWKS)**
-   - *Positive cache*: `jwks:kid:<kid>` → JWK (TTL pendek, mis. 5 menit) untuk kunci valid.
-   - *Negative cache*: `jwks:negative:<kid>` → marker (TTL pendek, mis. 60 detik) untuk `kid` yang tidak ditemukan — inti mitigasi flooding.
-   - Tidak menyimpan state rate-limit (lihat poin 3).
-3. **PostgreSQL (L2 / Source of Truth + Rate Limit Counter Permanen)** — menyimpan metadata kunci signing (`signing_keys`) dan counter rate-limit permanen (`rate_limit_counters`).
+1. **Dataset Loader** — membaca dataset publik Kaggle (ulasan aplikasi Gojek berbahasa Indonesia), memverifikasi kelengkapan dan distribusi label sentimen.
+2. **Preprocessing Module** — pipeline seragam: case folding, cleansing (hapus simbol/angka/URL), stopword removal (NLTK Bahasa Indonesia), stemming (Sastrawi). Mengunci variabel kontrol (CV) preprocessing agar identik pada kedua kondisi algoritma.
+3. **TF-IDF Vectorizer** — ekstraksi fitur (`max_features=5000`), di-fit **hanya pada data latih** untuk mencegah data leakage, lalu dipakai mentransformasi data uji.
+4. **Classifier (swappable)** — komponen yang menjadi variabel independen (IV): Multinomial Naïve Bayes (`alpha=1.0`) atau Random Forest (`n_estimators=100`), keduanya dari scikit-learn.
+5. **Evaluator** — menghitung accuracy, precision, recall, F1-score (average='weighted') via `classification_report`/`confusion_matrix`, menghasilkan variabel dependen (DV).
 
-## 2. Alur Resolusi Kunci (Mitigasi)
+## 2. Alur Eksekusi Pipeline (Per Run)
 
 ```
-Request masuk → Gateway parsing header JWT → ambil `kid`
+Dataset mentah (Kaggle) → verifikasi label
   │
-  ├─ Cek Redis positive cache (jwks:kid:<kid>)
-  │     ├─ HIT  → verifikasi signature → lanjut
-  │     └─ MISS ↓
+  ├─ Preprocessing (case folding → cleansing → stopword removal → stemming Sastrawi)
+  │     └─ Cache hasil preprocessing (v2) agar tidak perlu diulang tiap replikasi
   │
-  ├─ Cek Redis negative cache (jwks:negative:<kid>)
-  │     ├─ HIT  → tolak langsung (401), tanpa query DB
-  │     └─ MISS ↓
+  ├─ Stratified sampling per-seed (50k positif + 50k negatif dari korpus bersih)
   │
-  ├─ UPSERT & cek rate_limit_counters di PostgreSQL (atomic, per client_ip + window)
-  │     ├─ EXCEEDED → tolak (429) + set Redis negative cache
-  │     └─ OK ↓
+  ├─ Train-test split (80:20, random_state=seed, stratify=y)
   │
-  └─ Query PostgreSQL (signing_keys WHERE kid = ? AND is_active)
-        ├─ FOUND     → isi Redis positive cache → verifikasi signature
-        └─ NOT FOUND → set Redis negative cache → tolak (401)
+  ├─ TF-IDF Vectorizer — fit HANYA pada data latih, transform data uji
+  │
+  ├─ Classifier (swap: Naive Bayes ATAU Random Forest, parameter dikunci default)
+  │
+  └─ Evaluator → accuracy/precision/recall/F1 + confusion matrix → log JSON per run
 ```
 
-Catatan: pada mode `CACHE_MODE=none` (baseline), langkah cek Redis dan rate-limit dilewati — setiap request langsung query `signing_keys` di PostgreSQL, mensimulasikan gateway tanpa mitigasi.
+Catatan: pada eksplorasi awal (notebook, single-run seed=42), seluruh langkah di atas dijalankan satu kali sebagai referensi pipeline. Pada tahap multi-run, langkah yang sama diulang 5 kali (seed berbeda) untuk tiap algoritma, menghasilkan 10 run per versi skrip.
 
-Mekanisme **fail-closed**: jika Redis tidak dapat diakses, gateway tetap melanjutkan ke PostgreSQL (rate-limit counter tetap berfungsi karena bersumber dari PostgreSQL); jika PostgreSQL tidak dapat diakses, request ditolak (bukan diloloskan tanpa verifikasi).
+**Fail-safe pipeline**: berbeda dari sistem produksi, pipeline ini bersifat riset — tidak ada mekanisme fail-closed/fail-open real-time. Penanganan anomali berfokus pada validasi otomatis (nilai metrik harus dalam [0,100], ditandai di field `anomali` pada log) dan investigasi manual pasca-eksekusi (lihat Tahap 3/4), bukan pemulihan otomatis saat run berjalan.
 
-## 3. Skema Database (PostgreSQL)
+## 3. Skema Data (analog "skema database")
 
-```sql
-CREATE TABLE signing_keys (
-    kid             VARCHAR(255) PRIMARY KEY,
-    kty             VARCHAR(10)  NOT NULL DEFAULT 'RSA',
-    alg             VARCHAR(10)  NOT NULL DEFAULT 'RS256',
-    use_type        VARCHAR(10)  NOT NULL DEFAULT 'sig',
-    n               TEXT         NOT NULL,   -- modulus, base64url
-    e               TEXT         NOT NULL,   -- exponent, base64url
-    is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
-    created_at      TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    expires_at      TIMESTAMPTZ,
-    revoked_at      TIMESTAMPTZ
-);
+### 3.1 Struktur Dataset
 
-CREATE INDEX idx_signing_keys_active ON signing_keys (kid) WHERE is_active = TRUE;
+```
+gojek_labeled.csv
+├── content         TEXT    -- teks ulasan mentah
+└── sentiment       TEXT    -- label: 'positif' / 'negatif'
 
--- Counter rate-limit permanen (source of truth di PostgreSQL)
-CREATE TABLE rate_limit_counters (
-    client_ip       INET        NOT NULL,
-    window_start    TIMESTAMPTZ NOT NULL,
-    request_count   INTEGER     NOT NULL DEFAULT 0,
-    blocked_count   INTEGER     NOT NULL DEFAULT 0,
-    PRIMARY KEY (client_ip, window_start)
-);
+gojek_labeled_clean.csv (cache hasil preprocessing, dihasilkan v2)
+├── content         TEXT
+├── content_clean   TEXT    -- hasil case folding+cleansing+stopword+stemming
+└── sentiment       TEXT
 ```
 
-Upsert atomik untuk increment counter per request (window tetap, mis. 1 detik):
+### 3.2 Struktur Log Eksperimen (JSON per run)
 
-```sql
-INSERT INTO rate_limit_counters (client_ip, window_start, request_count)
-VALUES ($1, $2, 1)
-ON CONFLICT (client_ip, window_start)
-DO UPDATE SET request_count = rate_limit_counters.request_count + 1
-RETURNING request_count;
+```json
+{
+  "run_id": "run-NB-01-v2",
+  "timestamp": "2026-07-12T01:32:04.558394",
+  "skenario": "NB",
+  "seed": 42,
+  "n_sample": 100000,
+  "test_size": 0.2,
+  "tfidf_max_features": 5000,
+  "preprocessing": "case_folding+cleansing+stopword_removal+sastrawi_stemming",
+  "metric_average": "weighted",
+  "accuracy": 89.20,
+  "precision": 89.61,
+  "recall": 89.20,
+  "f1_score": 89.18,
+  "waktu_latih_detik": 0.3694,
+  "confusion_matrix": {"TN": 9423, "FP": 577, "FN": 1582, "TP": 8418},
+  "anomali": "NONE",
+  "catatan": ""
+}
 ```
 
-Jika `request_count` melebihi ambang batas, request ditolak dan `blocked_count` di-increment pada baris yang sama. Data ini bersifat permanen (tidak di-TTL) sehingga dapat dipakai langsung untuk analisis pola serangan pada Tahap 4.
+Field `preprocessing` dan `metric_average` ditambahkan pada versi v2 sebagai bagian dari perbaikan transparansi metodologi (lihat Tahap 3).
 
-Tabel log lookup tambahan (untuk cache hit/miss ratio) akan ditentukan pada Tahap 2 setelah skenario k6 lebih jelas.
+## 4. Keputusan Teknis (Final)
 
-## 4. Skema Redis (Murni L1 Cache JWKS)
-
-| Key Pattern | Tipe | TTL | Tujuan |
-|---|---|---|---|
-| `jwks:kid:<kid>` | STRING (JSON JWK) | ~300s | Cache positif untuk kunci valid |
-| `jwks:negative:<kid>` | STRING (`"1"`) | ~60s | Cache negatif untuk `kid` tak dikenal |
-
-## 5. Keputusan Teknis (Final)
-
-1. **Mode eksperimen**: satu binary gateway dengan toggle `CACHE_MODE=none|hybrid` — `none` = baseline tanpa cache/rate-limit, `hybrid` = arsitektur mitigasi penuh. Memastikan perbandingan baseline vs mitigated apple-to-apple untuk perhitungan $D_{perf}$.
-2. **Framework Gateway**: **Echo** (Go web framework).
-3. **Rate limiting**: counter permanen di **PostgreSQL** (`rate_limit_counters`, atomic UPSERT per `client_ip` + window). **Redis murni sebagai L1 cache JWKS** (positive & negative cache), tidak menyimpan state rate-limit.
-4. **Identity Service**: **PostgreSQL `signing_keys` langsung sebagai backing store** — tidak ada microservice tambahan; fokus eksperimen pada lapisan caching/rate-limit di Gateway.
-5. **Redis client**: `go-redis/redis/v9` (default standar Go ekosistem).
-6. **PostgreSQL driver**: `pgx` (native driver, performa baik, mendukung connection pooling via `pgxpool`).
-7. **Skenario issuer**: single issuer (disederhanakan) — dapat diperluas ke multi-issuer di penelitian lanjutan jika diperlukan.
+1. **Mode eksperimen**: dua versi skrip (`v1` tanpa preprocessing, `v2` dengan preprocessing lengkap) — bukan by design sejak awal, melainkan hasil revisi setelah anomali ditemukan (lihat Tahap 3). Keduanya dipertahankan untuk memungkinkan analisis sensitivitas.
+2. **Algoritma**: Multinomial Naïve Bayes vs Random Forest Classifier, keduanya dari scikit-learn, parameter default (tanpa tuning manual) untuk menghindari bias yang menguntungkan salah satu algoritma.
+3. **Ekstraksi fitur**: TF-IDF Vectorizer, `max_features=5000`, `ngram_range=(1,1)`.
+4. **Sumber data**: dataset publik Kaggle — dipilih karena stabil dan dapat direplikasi ulang oleh peneliti lain, tidak bergantung pada scraping mandiri yang rentan perubahan kebijakan API.
+5. **Seed replikasi**: 5 nilai pre-determined (42, 123, 456, 789, 2024), ditentukan sebelum eksekusi (bukan dipilih setelah melihat hasil).
+6. **Lingkungan eksekusi**: Google Colab untuk eksplorasi notebook; lokal (VS Code, Windows) untuk skrip multi-run.
