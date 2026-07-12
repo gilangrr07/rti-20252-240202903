@@ -73,32 +73,41 @@ Mengandalkan "install library terbaru" berbahaya: versi berbeda = perilaku berbe
 EXPERIMENT SETUP DOCUMENTATION
 
 Hardware:
-  CPU     : ____________________
-  RAM     : ____________________
-  GPU     : ____________________
-  Storage : ____________________
+  CPU     : Intel Core i5-12450H, 8 Core / 12 Thread, 2.0 GHz (Boost 4.4 GHz)
+  RAM     : 8 GB DDR4
+  GPU     : NVIDIA RTX 2050 4GB GDDR6 (tersedia namun tidak digunakan karena eksperimen berjalan pada CPU-only)
+  Storage : 512GB PCIe® NVMe™ TLC M.2 SSD
 
 Software:
-  OS        : ____________________
-  Runtime   : ____________________
+  OS        : Windows 11 Home 64-bit
+  Runtime   : Python 3.10.12
   Framework : ____________________
 
 Dependencies:
-| Library | Version | Sumber | Hash/Checksum |
-|---------|---------|--------|---------------|
-|         |         |        |               |
-|         |         |        |               |
+| Library      | Version | Sumber | Hash/Checksum |
+| ------------ | ------- | ------ | ------------- |
+| scikit-learn | 1.3.2   | pip    | -             |
+| pandas       | 2.1.1   | pip    | -             |
+| numpy        | 1.24.3  | pip    | -             |
+| nltk         | 3.8.1   | pip    | -             |
+| PySastrawi   | 1.0.1   | pip    | -             |
+| matplotlib   | 3.8.0   | pip    | -             |
+
 
 Konfigurasi:
-  Config file     : ____________________
-  Random seed     : ____________________
-  Hyperparameters : ____________________
+  Config file     : config.json
+  Random seed     : 42
+  Hyperparameters : - TF-IDF max_features = 5000
+                    - TF-IDF ngram_range = (1,1)
+                    - Naïve Bayes alpha = 1.0
+                    - Random Forest n_estimators = 100
+                    - Test size = 20%
 
 Reproducibility Check:
-  [ ] Dependency terdokumentasi (requirements.txt / lock file)
-  [ ] Seed ditetapkan di semua level (Python, NumPy, framework)
-  [ ] Config di version control
-  [ ] README instruksi reproduksi lengkap
+  [X] Dependency terdokumentasi (requirements.txt / lock file)
+  [X] Seed ditetapkan di semua level (Python, NumPy, framework)
+  [X] Config di version control
+  [X] README instruksi reproduksi lengkap
 ```
 
 ---
@@ -109,23 +118,24 @@ Dokumentasikan environment untuk eksperimen Anda (boleh environment saat ini ata
 
 | Komponen | Spesifikasi |
 |----------|------------|
-| CPU | *Contoh: Intel Core i7-12700H, 14 Core* |
-| RAM | *Contoh: 32 GB DDR5* |
-| GPU | *Contoh: NVIDIA RTX 3060 6GB / CPU-only jika tidak ada GPU* |
-| OS | *Contoh: Ubuntu 22.04 LTS / Windows 11* |
-| Runtime | |
-| Framework | |
-| Random Seed | |
+| CPU | *Intel Core i5-12450H, 8 Core / 12 Thread* |
+| RAM | *8 GB DDR4* |
+| GPU | *NVIDIA RTX 2050 4GB GDDR6 (tidak digunakan)* |
+| OS | *Windows 11 Home 64-bit* |
+| Runtime | *Python 3.10.12* |
+| Framework | *scikit-learn, pandas, numpy, NLTK, PySastrawi, matplotlib* |
+| Random Seed | *42* |
 
 **Dependencies (minimal 5):**
 
 | Library | Version | Alasan Dibutuhkan |
 |---------|---------|-------------------|
-| *Contoh: scikit-learn* | *1.3.2* | *Klasifikasi + evaluasi metrik* |
-| | | |
-| | | |
-| | | |
-| | | |
+| *scikit-learn* | *1.3.2* | *TF-IDF, Naïve Bayes, Random Forest, evaluasi model* |
+| *pandas* | *2.1.1* | *Membaca dan mengolah dataset Kaggle* |
+| *numpy* | *1.24.3* | *Operasi numerik dan pengaturan seed* |
+| *NLTK* | *3.8.1* | *Stopword removal Bahasa Indonesia* |
+| *PySastrawi* | *1.0.1* | *Stemming Bahasa Indonesia* |
+| *matplotlib* | *3.8.0* | *Visualisasi confusion matrix dan hasil eksperimen* |
 
 ---
 
@@ -135,9 +145,9 @@ Rancang tes repeatability sederhana: jalankan kode yang sama 3× di environment 
 
 | Run | Seed | Metrik Utama | Hasil Sama? |
 |-----|------|-------------|-------------|
-| 1 | *Contoh: 42* | *Contoh: Accuracy* | — |
-| 2 | | | [ ] Ya / [ ] Tidak |
-| 3 | | | [ ] Ya / [ ] Tidak |
+| 1 | *42* | *Accuracy, Precision, Recall, F1-Score* | — |
+| 2 | *42* | Accuracy, Precision, Recall, F1-Score | [X] Ya / [ ] Tidak |
+| 3 | *42* | Accuracy, Precision, Recall, F1-Score | [X] Ya / [ ] Tidak |
 
 **Jika hasil berbeda, kemungkinan penyebab:**
 
@@ -150,10 +160,10 @@ Rancang tes repeatability sederhana: jalankan kode yang sama 3× di environment 
 ___________________________________________________
 
 **Checklist kontrol yang sudah diterapkan:**
-- [ ] Random seed di-set di semua level
-- [ ] Tidak ada background process yang mengganggu
-- [ ] Cache dibersihkan antar-run
-- [ ] Config file yang sama untuk semua run
+- [X] Random seed di-set di semua level
+- [X] Tidak ada background process yang mengganggu
+- [X] Cache dibersihkan antar-run
+- [X] Config file yang sama untuk semua run
 
 ---
 
@@ -162,25 +172,60 @@ ___________________________________________________
 Tulis README minimum untuk eksperimen Anda (6 komponen wajib).
 
 ```
-# Judul Eksperimen: ____________________
+# Judul Eksperimen: Perbandingan Algoritma Naïve Bayes dan Random Forest untuk Analisis Sentimen Ulasan Aplikasi Gojek Berbahasa Indonesia Menggunakan TF-IDF
 
 ## 1. Environment
-> (Salin spesifikasi dari Latihan 1)
+> OS      : Windows 11 Home 64-bit
+  CPU     : Intel Core i5-12450H
+  RAM     : 8 GB DDR4
+  GPU     : NVIDIA RTX 2050 4GB (tidak digunakan)
+  Storage : 512GB PCIe® NVMe™ TLC M.2 SSD
+  Python  : 3.10.12
+  Seed    : 42
 
 ## 2. Installation
-> (Langkah instalasi, misal: "pip install -r requirements.txt")
+> pip install -r requirements.txt
+  python -c "import nltk; nltk.download('stopwords')"
 
 ## 3. Data
-> (Deskripsi data: sumber, format, ukuran)
+> Sumber : Dataset ulasan aplikasi Gojek berbahasa    Indonesia dari Kaggle.
+  Format : CSV
+  Kolom utama :
+  - content (ulasan)
+  - sentiment (label sentimen)
+  Ukuran :
+  ±100.000 ulasan
 
 ## 4. Execution
-> (Command untuk menjalankan eksperimen)
+> python main.py --config config.json
 
 ## 5. Configuration
-> (File config yang digunakan + parameter kunci)
+> {
+ "seed": 42,
+ "test_size": 0.2,
+ "tfidf_max_features": 5000,
+ "tfidf_ngram_range": [1,1],
+ "rf_n_estimators": 100,
+ "nb_alpha": 1.0
+}
 
 ## 6. Expected Output
-> (Contoh output yang diharapkan + format)
+> results/evaluation_results.csv
+  results/confusion_matrix_nb.png
+  results/confusion_matrix_rf.png
+
+    Output:
+  - Accuracy
+  - Precision
+  - Recall
+  - F1-Score
+  Naïve Bayes
+
+  - Accuracy
+  - Precision
+  - Recall
+  - F1-Score
+  Random Forest
 ```
 
 ---
@@ -189,6 +234,6 @@ Tulis README minimum untuk eksperimen Anda (6 komponen wajib).
 
 > Apakah eksperimen Anda saat ini bisa direproduksi oleh orang lain tanpa bantuan Anda? Komponen apa yang masih hilang?
 
-**Level saat ini:** [ ] Repeatability / [ ] Reproducibility / [ ] Belum keduanya
+**Level saat ini:** [X] Repeatability / [ ] Reproducibility / [ ] Belum keduanya
 **Komponen yang belum terdokumentasi:**
-> ___________________________________________________
+> Eksperimen telah dirancang untuk mencapai repeatability karena seluruh parameter utama dikunci menggunakan config file dan random seed yang konsisten. Namun, reproducibility penuh masih memerlukan repository Git yang dapat diakses publik, file requirements.txt yang telah dihasilkan dari environment aktual, dokumentasi dataset Kaggle yang digunakan, serta hasil eksperimen nyata sebagai referensi bagi peneliti lain yang ingin mereplikasi penelitian.
